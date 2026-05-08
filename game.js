@@ -21,6 +21,19 @@ let gameState = 'start';
 let score = 0;
 let highScore = Number(localStorage.getItem('flappyHighScore')) || 0;
 
+// ── Levels ────────────────────────────────────────────────
+// Each level has a name, color, tree speed, gap size, and points needed to reach it
+const LEVELS = [
+  { name: 'Level 1', emoji: '🌱', color: '#44ff88', treeSpeed: 1.6, treeGap: 210, scoreNeeded: 0  },
+  { name: 'Level 2', emoji: '🌿', color: '#aaee00', treeSpeed: 2.0, treeGap: 190, scoreNeeded: 5  },
+  { name: 'Level 3', emoji: '🌳', color: '#ffcc00', treeSpeed: 2.5, treeGap: 170, scoreNeeded: 10 },
+  { name: 'Level 4', emoji: '🔥', color: '#ff8800', treeSpeed: 3.0, treeGap: 155, scoreNeeded: 15 },
+  { name: 'Level 5', emoji: '💀', color: '#ff4444', treeSpeed: 3.6, treeGap: 140, scoreNeeded: 20 },
+];
+
+let currentLevel = 0;      // index into LEVELS array
+let levelUpTimer = 0;      // how long to show the "LEVEL UP!" flash (in seconds)
+
 // ── Stars (background decoration) ────────────────────────
 // We make a bunch of random stars once and reuse them every frame
 const STAR_COUNT = 80;
@@ -55,25 +68,25 @@ let parrot = {
 
 // ── Trees (obstacles) ────────────────────────────────────
 const TREE_WIDTH  = 64;   // how wide each tree trunk is
-const TREE_GAP    = 160;  // the gap the parrot flies through
-const TREE_SPEED  = 2.8;  // how fast trees scroll to the left
 const TREE_SPAWN  = 230;  // spawn a new tree every this many pixels
+// Note: treeGap and treeSpeed now come from LEVELS[currentLevel]
 
 let trees = [];
 let distanceSinceLastTree = 0;
 
 // ── Helper: create a tree pair ────────────────────────────
 function spawnTree() {
-  // The gap can appear anywhere between 20% and 70% of the screen height
+  const treeGap = LEVELS[currentLevel].treeGap;
+  // The gap can appear anywhere between 15% and 65% of the screen height
   const minTop = H * 0.15;
-  const maxTop = H * 0.65;
+  const maxTop = H * 0.65 - treeGap;
   const gapTop = minTop + Math.random() * (maxTop - minTop);
 
   trees.push({
-    x: W + TREE_WIDTH,  // start just off the right edge
-    gapTop: gapTop,     // where the gap starts (top tree ends here)
-    gapBottom: gapTop + TREE_GAP, // where the gap ends (bottom tree starts here)
-    scored: false,       // have we counted this tree yet?
+    x: W + TREE_WIDTH,
+    gapTop: gapTop,
+    gapBottom: gapTop + treeGap,
+    scored: false,
   });
 }
 
@@ -298,8 +311,10 @@ function drawParrot(time) {
   ctx.restore();
 }
 
-// Draw current score and high score on screen
-function drawHUD() {
+// Draw current score, level, and high score on screen
+function drawHUD(dt) {
+  const lvl = LEVELS[currentLevel];
+
   // Score (top center)
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.beginPath();
@@ -311,16 +326,40 @@ function drawHUD() {
   ctx.textAlign = 'center';
   ctx.fillText(score, W / 2, 46);
 
+  // Level badge (top left)
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath();
+  ctx.roundRect(12, 14, 140, 36, 8);
+  ctx.fill();
+  ctx.fillStyle = lvl.color;
+  ctx.font = 'bold 15px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${lvl.emoji} ${lvl.name}`, 20, 38);
+
   // High score (top right)
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.beginPath();
   ctx.roundRect(W - 130, 14, 118, 36, 8);
   ctx.fill();
-
   ctx.fillStyle = '#ffd700';
   ctx.font = 'bold 14px Arial';
   ctx.textAlign = 'right';
   ctx.fillText(`🏆 BEST: ${highScore}`, W - 18, 38);
+
+  // "LEVEL UP!" flash
+  if (levelUpTimer > 0) {
+    levelUpTimer -= dt;
+    const alpha = Math.min(1, levelUpTimer); // fade out in the last second
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = lvl.color;
+    ctx.font = 'bold 52px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${lvl.emoji} LEVEL UP! ${lvl.emoji}`, W / 2, H / 2 - 20);
+    ctx.font = 'bold 26px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(lvl.name, W / 2, H / 2 + 28);
+    ctx.globalAlpha = 1;
+  }
 }
 
 // Draw the start screen
@@ -396,6 +435,12 @@ function drawGameOverScreen() {
   ctx.fillStyle = '#aaddff';
   ctx.font = '18px Arial';
   ctx.fillText('Press SPACE or tap to play again', W / 2, H / 2 + 90);
+
+  // Show level reached
+  const lvl = LEVELS[currentLevel];
+  ctx.fillStyle = lvl.color;
+  ctx.font = 'bold 15px Arial';
+  ctx.fillText(`You reached ${lvl.emoji} ${lvl.name}!`, W / 2, H / 2 + 120);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -410,14 +455,16 @@ function updateParrot() {
 
 // Move the trees and spawn new ones
 function updateTrees() {
+  const treeSpeed = LEVELS[currentLevel].treeSpeed;
+
   // Move all trees to the left
-  trees.forEach(tree => { tree.x -= TREE_SPEED; });
+  trees.forEach(tree => { tree.x -= treeSpeed; });
 
   // Remove trees that have gone off the left side
   trees = trees.filter(tree => tree.x + TREE_WIDTH + 60 > 0);
 
   // Spawn a new tree pair when enough distance has passed
-  distanceSinceLastTree += TREE_SPEED;
+  distanceSinceLastTree += treeSpeed;
   if (distanceSinceLastTree >= TREE_SPAWN) {
     spawnTree();
     distanceSinceLastTree = 0;
@@ -451,7 +498,7 @@ function checkCollisions() {
   return false;
 }
 
-// Add a point when the parrot passes a tree
+// Add a point when the parrot passes a tree, and check for level up
 function updateScore() {
   trees.forEach(tree => {
     if (!tree.scored && tree.x + TREE_WIDTH < parrot.x) {
@@ -460,6 +507,12 @@ function updateScore() {
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('flappyHighScore', highScore);
+      }
+      // Check if we should level up
+      const nextLevel = currentLevel + 1;
+      if (nextLevel < LEVELS.length && score >= LEVELS[nextLevel].scoreNeeded) {
+        currentLevel = nextLevel;
+        levelUpTimer = 2.5; // show "LEVEL UP!" for 2.5 seconds
       }
     }
   });
@@ -484,6 +537,8 @@ function flap() {
 function startGame() {
   gameState = 'playing';
   score = 0;
+  currentLevel = 0;
+  levelUpTimer = 0;
   trees = [];
   distanceSinceLastTree = TREE_SPAWN; // spawn first tree right away
   parrot.y = H / 2;
@@ -506,9 +561,13 @@ function triggerGameOver() {
 //  MAIN GAME LOOP
 // ═══════════════════════════════════════════════════════════
 
+let lastTimestamp = 0;
+
 function gameLoop(timestamp) {
   // Convert timestamp to seconds for smooth animation
   const time = timestamp / 1000;
+  const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05); // seconds since last frame
+  lastTimestamp = timestamp;
 
   // 1. Draw the background scene (always visible)
   drawBackground();
@@ -536,12 +595,12 @@ function gameLoop(timestamp) {
 
   // 5. Draw the HUD or overlays
   if (gameState === 'playing') {
-    drawHUD();
+    drawHUD(dt);
   } else if (gameState === 'start') {
     drawParrot(time); // show parrot on start screen too
     drawStartScreen();
   } else if (gameState === 'gameover') {
-    drawHUD();
+    drawHUD(0);
     drawGameOverScreen();
   }
 
