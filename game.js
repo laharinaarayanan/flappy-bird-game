@@ -186,19 +186,19 @@ function drawTree(x, y, treeH, isTop) {
   const leafR = TREE_WIDTH * 0.75;
 
   if (isTop) {
-    // Leaves at the bottom of the top tree
+    // Leaves sit at the bottom of the top trunk (NOT hanging into the gap)
     foliageColors.forEach((color, i) => {
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(foliageX, y + treeH + leafR * 0.4 - i * 10, leafR - i * 8, 0, Math.PI * 2);
+      ctx.arc(foliageX, y + treeH - leafR * 0.6 + i * 8, leafR - i * 8, 0, Math.PI * 2);
       ctx.fill();
     });
   } else {
-    // Leaves at the top of the bottom tree
+    // Leaves sit at the top of the bottom trunk (NOT poking into the gap)
     foliageColors.forEach((color, i) => {
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(foliageX, y - leafR * 0.4 + i * 10, leafR - i * 8, 0, Math.PI * 2);
+      ctx.arc(foliageX, y + leafR * 0.6 - i * 8, leafR - i * 8, 0, Math.PI * 2);
       ctx.fill();
     });
   }
@@ -404,7 +404,7 @@ function drawGameOverScreen() {
 
   ctx.fillStyle = 'rgba(30,10,10,0.92)';
   ctx.beginPath();
-  ctx.roundRect(W / 2 - 170, H / 2 - 170, 340, 280, 20);
+  ctx.roundRect(W / 2 - 170, H / 2 - 170, 340, 316, 20);
   ctx.fill();
   ctx.strokeStyle = '#ff4444';
   ctx.lineWidth = 2;
