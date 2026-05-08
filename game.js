@@ -384,22 +384,36 @@ function drawParrot(time, previewMode = false) {
     ctx.restore();
   });
 
-  // ── Wing (behind body) — flaps when playing or in preview ──────────────
+  // ── Wing — full spread, pivots from shoulder ─────────────
   parrot.wingAngle = (gameState === 'playing' || previewMode)
-    ? Math.sin(time * 9) * 0.55
-    : Math.sin(time * 3) * 0.2; // gentle idle sway on start/gameover
+    ? Math.sin(time * 9) * 0.95
+    : Math.sin(time * 3) * 0.25;
   ctx.save();
+  ctx.translate(s * 0.05, -s * 0.05); // shoulder pivot
   ctx.rotate(-parrot.wingAngle);
-  // Wing base (blue)
+  // Main wing (blue)
   ctx.fillStyle = '#1565c0';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.05, s * 0.05, s * 0.52, s * 0.26, -0.35, 0, Math.PI * 2);
+  ctx.moveTo(s * 0.12, s * 0.08);
+  ctx.bezierCurveTo(-s * 0.2, -s * 0.05, -s * 0.75, -s * 0.02, -s * 1.1, s * 0.12);
+  ctx.bezierCurveTo(-s * 0.75, s * 0.38, -s * 0.2, s * 0.38, s * 0.12, s * 0.24);
+  ctx.closePath();
   ctx.fill();
-  // Wing highlight
-  ctx.fillStyle = '#42a5f5';
+  // Yellow band
+  ctx.fillStyle = '#f9a825';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.05, s * 0.0, s * 0.32, s * 0.13, -0.35, 0, Math.PI * 2);
+  ctx.moveTo(s * 0.05, s * 0.1);
+  ctx.bezierCurveTo(-s * 0.25, s * 0.04, -s * 0.7, s * 0.08, -s * 0.88, s * 0.2);
+  ctx.bezierCurveTo(-s * 0.7, s * 0.32, -s * 0.25, s * 0.3, s * 0.05, s * 0.22);
+  ctx.closePath();
   ctx.fill();
+  // Primary feather tips
+  ctx.fillStyle = '#0d47a1';
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.78 - i * s * 0.07, s * 0.28 + i * s * 0.04, s * 0.04, s * 0.14, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 
   // ── Body — chubby round shape ────────────────────────────
@@ -535,7 +549,7 @@ function drawDuck(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.95 : Math.sin(time * 3) * 0.25;
 
   // Tail
   ctx.fillStyle = '#ffe082';
@@ -543,17 +557,33 @@ function drawDuck(time, previewMode = false) {
   ctx.ellipse(-s * 0.55, s * 0.1, s * 0.18, s * 0.38, 0.4, 0, Math.PI * 2);
   ctx.fill();
 
-  // Wing
+  // Wing — full spread from shoulder
   ctx.save();
+  ctx.translate(s * 0.0, -s * 0.0); // shoulder
   ctx.rotate(-wing);
-  ctx.fillStyle = '#ffffff';
+  // White outer wing
+  ctx.fillStyle = '#e0e0e0';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.05, s * 0.05, s * 0.5, s * 0.22, -0.3, 0, Math.PI * 2);
+  ctx.moveTo(s * 0.12, s * 0.08);
+  ctx.bezierCurveTo(-s * 0.2, -s * 0.04, -s * 0.75, -s * 0.0, -s * 1.1, s * 0.14);
+  ctx.bezierCurveTo(-s * 0.75, s * 0.38, -s * 0.2, s * 0.38, s * 0.12, s * 0.24);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#fffde7';
+  // Blue speculum band
+  ctx.fillStyle = '#1e88e5';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.05, 0, s * 0.3, s * 0.12, -0.3, 0, Math.PI * 2);
+  ctx.moveTo(-s * 0.15, s * 0.12);
+  ctx.bezierCurveTo(-s * 0.4, s * 0.08, -s * 0.75, s * 0.12, -s * 0.9, s * 0.22);
+  ctx.bezierCurveTo(-s * 0.75, s * 0.32, -s * 0.4, s * 0.30, -s * 0.15, s * 0.24);
+  ctx.closePath();
   ctx.fill();
+  // Primary tips
+  ctx.fillStyle = '#bdbdbd';
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.78 - i * s * 0.07, s * 0.28 + i * s * 0.04, s * 0.04, s * 0.14, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 
   // Body — very round and chubby
@@ -649,7 +679,7 @@ function drawOwl(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.95 : Math.sin(time * 3) * 0.25;
 
   // Tail
   ctx.fillStyle = '#5d4037';
@@ -657,21 +687,33 @@ function drawOwl(time, previewMode = false) {
   ctx.ellipse(-s * 0.48, s * 0.18, s * 0.16, s * 0.35, 0.3, 0, Math.PI * 2);
   ctx.fill();
 
-  // Wing
+  // Wing — wide owl wings spread from shoulder
   ctx.save();
+  ctx.translate(s * 0.0, -s * 0.02);
   ctx.rotate(-wing);
-  ctx.fillStyle = '#795548';
+  // Main wing (brown)
+  ctx.fillStyle = '#6d4c41';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.05, s * 0.05, s * 0.52, s * 0.24, -0.3, 0, Math.PI * 2);
+  ctx.moveTo(s * 0.14, s * 0.08);
+  ctx.bezierCurveTo(-s * 0.15, -s * 0.06, -s * 0.8, -s * 0.04, -s * 1.15, s * 0.1);
+  ctx.bezierCurveTo(-s * 0.8, s * 0.4, -s * 0.15, s * 0.4, s * 0.14, s * 0.26);
+  ctx.closePath();
   ctx.fill();
-  // Wing feather lines
+  // Darker barring bands
   ctx.strokeStyle = '#4e342e';
   ctx.lineWidth = 1.5;
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    ctx.moveTo(-s * 0.4 + i * s * 0.2, s * 0.0);
-    ctx.lineTo(-s * 0.35 + i * s * 0.2, s * 0.2);
+    ctx.moveTo(-s * 0.05 - i * s * 0.17, s * 0.06 + i * s * 0.01);
+    ctx.lineTo(-s * 0.1  - i * s * 0.17, s * 0.3  + i * s * 0.02);
     ctx.stroke();
+  }
+  // Primary feather tips (darker)
+  ctx.fillStyle = '#3e2723';
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.82 - i * s * 0.07, s * 0.28 + i * s * 0.04, s * 0.04, s * 0.15, 0.15, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 
@@ -763,7 +805,7 @@ function drawChick(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 12) * 0.6 : Math.sin(time * 3) * 0.15;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 12) * 0.95 : Math.sin(time * 3) * 0.25;
 
   // Fluffy tail
   ['#fff176', '#ffee58', '#fdd835'].forEach((c, i) => {
@@ -773,13 +815,24 @@ function drawChick(time, previewMode = false) {
     ctx.fill();
   });
 
-  // Tiny stub wing (flaps a lot — chicks flap like crazy!)
+  // Stubby chick wing — flaps like crazy from shoulder!
   ctx.save();
-  ctx.rotate(-wing * 1.2);
+  ctx.translate(s * 0.0, s * 0.0);
+  ctx.rotate(-wing);
   ctx.fillStyle = '#fdd835';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.08, s * 0.08, s * 0.38, s * 0.16, -0.4, 0, Math.PI * 2);
+  ctx.moveTo(s * 0.1, s * 0.06);
+  ctx.bezierCurveTo(-s * 0.1, -s * 0.04, -s * 0.55, -s * 0.0, -s * 0.72, s * 0.1);
+  ctx.bezierCurveTo(-s * 0.55, s * 0.3, -s * 0.1, s * 0.3, s * 0.1, s * 0.2);
+  ctx.closePath();
   ctx.fill();
+  // Tiny fluffy tips
+  ctx.fillStyle = '#fff176';
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.52 - i * s * 0.08, s * 0.22 + i * s * 0.04, s * 0.05, s * 0.12, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 
   // Round fluffy body (very round!)
