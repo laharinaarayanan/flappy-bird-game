@@ -144,25 +144,103 @@ function drawStars(time) {
 }
 
 // Draw the ground (grassy strip at the bottom)
-// cameraX is the current camera offset so grass blades tile as the bird flies forward
+// cameraX is the current camera offset so everything tiles as the bird flies forward
 function drawGround(cameraX) {
-  // Dirt
-  ctx.fillStyle = '#3a2010';
-  ctx.fillRect(cameraX, H - 30, W, 30);
-  // Grass strip
-  ctx.fillStyle = '#1a5c1a';
-  ctx.fillRect(cameraX, H - 34, W, 8);
-  // Tiled grass blade highlights that scroll with the world
-  ctx.fillStyle = '#2a8a2a';
-  const startX = Math.floor(cameraX / 18) * 18;
-  for (let gx = startX; gx < cameraX + W + 18; gx += 18) {
+  const groundY = H - 36; // where the grass meets the dirt
+
+  // ── Dirt layers ──────────────────────────────────────────
+  // Deep dark soil at the very bottom
+  ctx.fillStyle = '#1a0c04';
+  ctx.fillRect(cameraX, H - 20, W, 20);
+
+  // Mid dirt layer with a horizontal gradient
+  const dirtGrad = ctx.createLinearGradient(0, groundY, 0, H);
+  dirtGrad.addColorStop(0, '#4a2a10');
+  dirtGrad.addColorStop(0.5, '#3a1e08');
+  dirtGrad.addColorStop(1, '#1a0c04');
+  ctx.fillStyle = dirtGrad;
+  ctx.fillRect(cameraX, groundY, W, H - groundY);
+
+  // ── Dirt texture: small pebbles / stones ─────────────────
+  // Use stable pseudo-random positions based on x so they don't flicker
+  const pebbleStart = Math.floor(cameraX / 14) * 14;
+  for (let px = pebbleStart; px < cameraX + W + 14; px += 14) {
+    // Each "column" of pebbles uses the x as a seed for stable variety
+    const seed = (px * 7 + 13) % 100;
+    if (seed < 55) { // only draw a pebble ~55% of positions
+      const py = groundY + 6 + (seed % 14);
+      const pr = 1.5 + (seed % 3);
+      ctx.fillStyle = seed < 25
+        ? 'rgba(180,130,80,0.35)'   // lighter stone
+        : 'rgba(80,50,20,0.4)';     // darker clump
+      ctx.beginPath();
+      ctx.ellipse(px, py, pr * 1.6, pr, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ── Grass base strip ─────────────────────────────────────
+  // Dark base layer
+  ctx.fillStyle = '#1b5e20';
+  ctx.fillRect(cameraX, groundY - 4, W, 10);
+
+  // ── Grass blades — two passes for depth ──────────────────
+  // PASS 1: back row of blades (darker, shorter)
+  const backStart = Math.floor(cameraX / 9) * 9;
+  for (let gx = backStart; gx < cameraX + W + 9; gx += 9) {
+    const seed = (gx * 5 + 7) % 100;
+    const height = 8 + (seed % 7);          // 8–14 px tall
+    const lean   = (seed % 7) - 3;          // -3 to +3 lean
+    const colorIdx = seed % 3;
+    ctx.fillStyle = ['#1b5e20', '#2e7d32', '#388e3c'][colorIdx];
     ctx.beginPath();
-    ctx.moveTo(gx, H - 34);
-    ctx.lineTo(gx + 6, H - 42);
-    ctx.lineTo(gx + 12, H - 34);
+    ctx.moveTo(gx,            groundY);
+    ctx.lineTo(gx + lean,     groundY - height);
+    ctx.lineTo(gx + 4 + lean, groundY - height + 2);
+    ctx.lineTo(gx + 5,        groundY);
+    ctx.closePath();
     ctx.fill();
   }
+
+  // PASS 2: front row of blades (brighter, taller, closer together)
+  const frontStart = Math.floor(cameraX / 7) * 7;
+  for (let gx = frontStart + 3; gx < cameraX + W + 7; gx += 7) {
+    const seed = (gx * 11 + 3) % 100;
+    const height = 10 + (seed % 10);        // 10–19 px tall
+    const lean   = (seed % 9) - 4;          // more expressive lean
+    const colorIdx = seed % 4;
+    ctx.fillStyle = ['#43a047', '#66bb6a', '#388e3c', '#81c784'][colorIdx];
+    // Curved blade using quadratic bezier
+    ctx.beginPath();
+    ctx.moveTo(gx, groundY + 1);
+    ctx.quadraticCurveTo(
+      gx + lean * 1.5, groundY - height * 0.6,  // control point (gives a curve)
+      gx + lean + 2,   groundY - height           // tip
+    );
+    ctx.quadraticCurveTo(
+      gx + lean * 1.5 + 4, groundY - height * 0.6,
+      gx + 5, groundY + 1
+    );
+    ctx.closePath();
+    ctx.fill();
+
+    // Lighter highlight on some blades
+    if (seed % 5 === 0) {
+      ctx.fillStyle = 'rgba(180,255,140,0.18)';
+      ctx.beginPath();
+      ctx.moveTo(gx + 1, groundY);
+      ctx.quadraticCurveTo(gx + lean * 1.5 + 1, groundY - height * 0.55, gx + lean + 2, groundY - height);
+      ctx.lineTo(gx + lean + 3, groundY - height + 3);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // ── Ground edge shadow line ───────────────────────────────
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(cameraX, groundY + 4, W, 3);
 }
+
 
 // Draw a single tree (top or bottom)
 //   x, y      → top-left corner of the trunk
@@ -271,99 +349,173 @@ function drawTrees() {
   });
 }
 
-// Draw the colorful parrot 🦜
+// Draw the colorful parrot 🦜 — cute chubby version!
 function drawParrot(time) {
   ctx.save();
 
   // Parrot always appears at PARROT_X on screen (the camera follows the bird's world position)
   ctx.translate(PARROT_X, parrot.y);
-  const targetAngle = Math.max(-0.5, Math.min(1.2, parrot.vy * 0.07));
+  const targetAngle = Math.max(-0.4, Math.min(1.0, parrot.vy * 0.06));
   parrot.angle += (targetAngle - parrot.angle) * 0.15;
   ctx.rotate(parrot.angle);
 
   const s = PARROT_SIZE; // shorthand for size
 
-  // Wing (behind body) — flaps up and down
-  parrot.wingAngle = Math.sin(time * 8) * 0.6;
+  // ── Tail feathers (drawn first so body covers the base) ──
+  const tailColors = ['#e53935', '#fb8c00', '#fdd835', '#1e88e5', '#ab47bc'];
+  tailColors.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.save();
+    ctx.rotate(0.2 + i * 0.22);
+    ctx.beginPath();
+    // Rounded teardrop tail feathers
+    ctx.ellipse(-s * 0.55, s * 0.15, s * 0.11, s * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Lighter tip on each feather
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.55, s * 0.48, s * 0.05, s * 0.14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // ── Wing (behind body) — flaps when playing ──────────────
+  parrot.wingAngle = gameState === 'playing'
+    ? Math.sin(time * 9) * 0.55
+    : Math.sin(time * 3) * 0.2; // gentle idle sway on other screens
   ctx.save();
   ctx.rotate(-parrot.wingAngle);
-  ctx.fillStyle = '#1565c0'; // deep blue wing
+  // Wing base (blue)
+  ctx.fillStyle = '#1565c0';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.1, 0, s * 0.55, s * 0.28, -0.4, 0, Math.PI * 2);
+  ctx.ellipse(-s * 0.05, s * 0.05, s * 0.52, s * 0.26, -0.35, 0, Math.PI * 2);
+  ctx.fill();
+  // Wing highlight
+  ctx.fillStyle = '#42a5f5';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.05, s * 0.0, s * 0.32, s * 0.13, -0.35, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  // Body
-  ctx.fillStyle = '#4caf50'; // bright green body
+  // ── Body — chubby round shape ────────────────────────────
+  ctx.fillStyle = '#43a047'; // rich green
   ctx.beginPath();
-  ctx.ellipse(0, 0, s * 0.55, s * 0.65, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, s * 0.08, s * 0.6, s * 0.68, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Belly (lighter patch)
-  ctx.fillStyle = '#aed581';
+  // Belly — soft cream patch
+  ctx.fillStyle = '#f9f3c8';
   ctx.beginPath();
-  ctx.ellipse(s * 0.1, s * 0.1, s * 0.28, s * 0.4, 0.2, 0, Math.PI * 2);
+  ctx.ellipse(s * 0.08, s * 0.22, s * 0.32, s * 0.44, 0.15, 0, Math.PI * 2);
   ctx.fill();
 
-  // Red chest patch
-  ctx.fillStyle = '#ef5350';
+  // Chest heart patch 💛
+  ctx.fillStyle = '#ffca28';
   ctx.beginPath();
-  ctx.ellipse(s * 0.1, -s * 0.05, s * 0.22, s * 0.28, 0, 0, Math.PI * 2);
+  ctx.ellipse(s * 0.1, s * 0.0, s * 0.2, s * 0.24, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Head
-  ctx.fillStyle = '#4caf50';
+  // ── Big round head ───────────────────────────────────────
+  ctx.fillStyle = '#43a047';
   ctx.beginPath();
-  ctx.arc(s * 0.2, -s * 0.55, s * 0.38, 0, Math.PI * 2);
+  ctx.arc(s * 0.18, -s * 0.58, s * 0.44, 0, Math.PI * 2); // bigger head = cuter
   ctx.fill();
 
-  // Beak (upper)
+  // ── Cute little head crest (tuft) ───────────────────────
+  const crestBob = Math.sin(time * 5) * 0.08; // wiggles a tiny bit
+  ['#e53935', '#fb8c00', '#fdd835'].forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(
+      s * 0.1 + i * s * 0.12,
+      -s * 0.98 + crestBob - i * s * 0.08,
+      s * 0.08,
+      s * 0.2 - i * s * 0.04,
+      i * 0.3 - 0.2,
+      0, Math.PI * 2
+    );
+    ctx.fill();
+  });
+
+  // ── Tiny cute beak ───────────────────────────────────────
+  // Upper beak (small rounded triangle)
   ctx.fillStyle = '#ffa000';
   ctx.beginPath();
-  ctx.moveTo(s * 0.5, -s * 0.6);
-  ctx.lineTo(s * 0.9, -s * 0.5);
-  ctx.lineTo(s * 0.5, -s * 0.42);
+  ctx.moveTo(s * 0.54, -s * 0.62);
+  ctx.quadraticCurveTo(s * 0.88, -s * 0.54, s * 0.54, -s * 0.46);
   ctx.closePath();
   ctx.fill();
-
-  // Beak (lower — slight hook)
+  // Lower beak
   ctx.fillStyle = '#ff8f00';
   ctx.beginPath();
-  ctx.moveTo(s * 0.5, -s * 0.42);
-  ctx.lineTo(s * 0.82, -s * 0.38);
-  ctx.lineTo(s * 0.5, -s * 0.3);
+  ctx.moveTo(s * 0.54, -s * 0.46);
+  ctx.quadraticCurveTo(s * 0.80, -s * 0.40, s * 0.54, -s * 0.36);
   ctx.closePath();
   ctx.fill();
 
-  // Eye white
+  // ── Big cute eyes ────────────────────────────────────────
+  // Outer white (large!)
   ctx.fillStyle = 'white';
   ctx.beginPath();
-  ctx.arc(s * 0.38, -s * 0.62, s * 0.15, 0, Math.PI * 2);
+  ctx.arc(s * 0.36, -s * 0.65, s * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Iris (big colourful circle)
+  ctx.fillStyle = '#6a1de8';
+  ctx.beginPath();
+  ctx.arc(s * 0.38, -s * 0.65, s * 0.14, 0, Math.PI * 2);
   ctx.fill();
 
   // Pupil
   ctx.fillStyle = '#111';
   ctx.beginPath();
-  ctx.arc(s * 0.42, -s * 0.62, s * 0.08, 0, Math.PI * 2);
+  ctx.arc(s * 0.40, -s * 0.65, s * 0.09, 0, Math.PI * 2);
   ctx.fill();
 
-  // Eye shine
+  // Big sparkly shine (makes eyes look alive!)
   ctx.fillStyle = 'white';
   ctx.beginPath();
-  ctx.arc(s * 0.46, -s * 0.66, s * 0.04, 0, Math.PI * 2);
+  ctx.arc(s * 0.44, -s * 0.70, s * 0.055, 0, Math.PI * 2);
+  ctx.fill();
+  // Small second shine
+  ctx.beginPath();
+  ctx.arc(s * 0.32, -s * 0.60, s * 0.03, 0, Math.PI * 2);
   ctx.fill();
 
-  // Tail feathers
-  const tailColors = ['#e53935', '#fb8c00', '#fdd835', '#1e88e5'];
-  tailColors.forEach((color, i) => {
-    ctx.fillStyle = color;
-    ctx.save();
-    ctx.rotate(0.3 + i * 0.18);
-    ctx.beginPath();
-    ctx.ellipse(-s * 0.6, s * 0.2, s * 0.12, s * 0.45, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  });
+  // ── Rosy cheek blush ─────────────────────────────────────
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#ff8a80';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.5, -s * 0.52, s * 0.13, s * 0.08, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // ── Tiny feet peeking out at the bottom ──────────────────
+  ctx.strokeStyle = '#e65100';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  // Left foot
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.1, s * 0.72);
+  ctx.lineTo(-s * 0.22, s * 0.88);
+  ctx.moveTo(-s * 0.22, s * 0.88);
+  ctx.lineTo(-s * 0.32, s * 0.88);
+  ctx.moveTo(-s * 0.22, s * 0.88);
+  ctx.lineTo(-s * 0.18, s * 1.0);
+  ctx.moveTo(-s * 0.22, s * 0.88);
+  ctx.lineTo(-s * 0.08, s * 0.96);
+  ctx.stroke();
+  // Right foot
+  ctx.beginPath();
+  ctx.moveTo(s * 0.14, s * 0.72);
+  ctx.lineTo(s * 0.22, s * 0.88);
+  ctx.moveTo(s * 0.22, s * 0.88);
+  ctx.lineTo(s * 0.34, s * 0.88);
+  ctx.moveTo(s * 0.22, s * 0.88);
+  ctx.lineTo(s * 0.18, s * 1.0);
+  ctx.moveTo(s * 0.22, s * 0.88);
+  ctx.lineTo(s * 0.08, s * 0.96);
+  ctx.stroke();
 
   ctx.restore();
 }
