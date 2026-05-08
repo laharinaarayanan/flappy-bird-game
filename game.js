@@ -384,10 +384,10 @@ function drawParrot(time, previewMode = false) {
     ctx.restore();
   });
 
-  // ── Wing (behind body) — flaps when playing ──────────────
-  parrot.wingAngle = gameState === 'playing'
+  // ── Wing (behind body) — flaps when playing or in preview ──────────────
+  parrot.wingAngle = (gameState === 'playing' || previewMode)
     ? Math.sin(time * 9) * 0.55
-    : Math.sin(time * 3) * 0.2; // gentle idle sway on other screens
+    : Math.sin(time * 3) * 0.2; // gentle idle sway on start/gameover
   ctx.save();
   ctx.rotate(-parrot.wingAngle);
   // Wing base (blue)
@@ -535,7 +535,7 @@ function drawDuck(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = gameState === 'playing' ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
 
   // Tail
   ctx.fillStyle = '#ffe082';
@@ -649,7 +649,7 @@ function drawOwl(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = gameState === 'playing' ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
 
   // Tail
   ctx.fillStyle = '#5d4037';
@@ -763,7 +763,7 @@ function drawChick(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = gameState === 'playing' ? Math.sin(time * 12) * 0.6 : Math.sin(time * 3) * 0.15;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 12) * 0.6 : Math.sin(time * 3) * 0.15;
 
   // Fluffy tail
   ['#fff176', '#ffee58', '#fdd835'].forEach((c, i) => {
@@ -879,10 +879,10 @@ function drawChick(time, previewMode = false) {
 // ── Characters list ───────────────────────────────────────
 // Each entry: name, emoji, fun description, and draw function
 const CHARACTERS = [
-  { name: 'Polly',  emoji: '🦜', desc: 'The colorful parrot!',  color: '#4caf50', drawFn: drawParrot },
-  { name: 'Daffy',  emoji: '🦆', desc: 'The waddly duck!',      color: '#ffee58', drawFn: drawDuck   },
-  { name: 'Hoot',   emoji: '🦉', desc: 'The wise old owl!',     color: '#795548', drawFn: drawOwl    },
-  { name: 'Chirpy', emoji: '🐣', desc: 'The tiny baby chick!',  color: '#fdd835', drawFn: drawChick  },
+  { name: 'Scarlet',  emoji: '🦜', desc: 'Scarlet Macaw',      color: '#4caf50', drawFn: drawParrot },
+  { name: 'Mallard',  emoji: '🦆', desc: 'Mallard Duck',        color: '#ffee58', drawFn: drawDuck   },
+  { name: 'Athena',   emoji: '🦉', desc: 'Great Horned Owl',    color: '#795548', drawFn: drawOwl    },
+  { name: 'Pip',      emoji: '🐣', desc: 'Baby Chick',          color: '#fdd835', drawFn: drawChick  },
 ];
 
 // Draw whichever character is currently selected
