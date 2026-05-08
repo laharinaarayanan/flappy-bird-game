@@ -353,7 +353,7 @@ function drawTrees() {
   });
 }
 
-// Draw the colorful parrot 🦜 — cute chubby version!
+// 🦜 Scarlet Macaw — red body, blue/yellow wings, hooked grey beak
 // previewMode=true → draw at (0,0) without game physics translation/rotation
 function drawParrot(time, previewMode = false) {
   ctx.save();
@@ -363,183 +363,115 @@ function drawParrot(time, previewMode = false) {
     parrot.angle += (targetAngle - parrot.angle) * 0.15;
     ctx.rotate(parrot.angle);
   }
+  const s = PARROT_SIZE;
 
-  const s = PARROT_SIZE; // shorthand for size
-
-  // ── Tail feathers (drawn first so body covers the base) ──
-  const tailColors = ['#e53935', '#fb8c00', '#fdd835', '#1e88e5', '#ab47bc'];
-  tailColors.forEach((color, i) => {
-    ctx.fillStyle = color;
-    ctx.save();
-    ctx.rotate(0.2 + i * 0.22);
+  // Long blue/red tail feathers
+  [['#1565c0',0.12],['#1976d2',0.3],['#c62828',-0.0],['#e53935',-0.18]].forEach(([c,a]) => {
+    ctx.save(); ctx.rotate(a);
+    ctx.fillStyle = c;
     ctx.beginPath();
-    // Rounded teardrop tail feathers
-    ctx.ellipse(-s * 0.55, s * 0.15, s * 0.11, s * 0.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(-s*0.5, s*0.22, s*0.07, s*0.52, 0, 0, Math.PI*2);
     ctx.fill();
-    // Lighter tip on each feather
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.beginPath();
-    ctx.ellipse(-s * 0.55, s * 0.48, s * 0.05, s * 0.14, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(-s*0.5, s*0.0); ctx.lineTo(-s*0.5, s*0.68); ctx.stroke();
     ctx.restore();
   });
 
-  // ── Wing — full spread, pivots from shoulder ─────────────
+  // Wing — pivots from shoulder (top of body)
   parrot.wingAngle = (gameState === 'playing' || previewMode)
-    ? Math.sin(time * 9) * 0.95
+    ? Math.sin(time * 9) * 0.9
     : Math.sin(time * 3) * 0.25;
   ctx.save();
-  ctx.translate(s * 0.05, -s * 0.05); // shoulder pivot
+  ctx.translate(s*0.05, -s*0.22); // shoulder pivot
   ctx.rotate(-parrot.wingAngle);
-  // Main wing (blue)
-  ctx.fillStyle = '#1565c0';
+  ctx.fillStyle = '#1565c0'; // blue outer wing
   ctx.beginPath();
-  ctx.moveTo(s * 0.12, s * 0.08);
-  ctx.bezierCurveTo(-s * 0.2, -s * 0.05, -s * 0.75, -s * 0.02, -s * 1.1, s * 0.12);
-  ctx.bezierCurveTo(-s * 0.75, s * 0.38, -s * 0.2, s * 0.38, s * 0.12, s * 0.24);
-  ctx.closePath();
-  ctx.fill();
-  // Yellow band
-  ctx.fillStyle = '#f9a825';
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-s*0.3, s*0.04, -s*0.88, s*0.06, -s*1.1, s*0.18);
+  ctx.bezierCurveTo(-s*0.88, s*0.42, -s*0.3, s*0.4, 0, s*0.28);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#7cb342'; // yellow-green band
   ctx.beginPath();
-  ctx.moveTo(s * 0.05, s * 0.1);
-  ctx.bezierCurveTo(-s * 0.25, s * 0.04, -s * 0.7, s * 0.08, -s * 0.88, s * 0.2);
-  ctx.bezierCurveTo(-s * 0.7, s * 0.32, -s * 0.25, s * 0.3, s * 0.05, s * 0.22);
-  ctx.closePath();
-  ctx.fill();
-  // Primary feather tips
-  ctx.fillStyle = '#0d47a1';
+  ctx.moveTo(-s*0.04, s*0.06);
+  ctx.bezierCurveTo(-s*0.3, s*0.1, -s*0.72, s*0.14, -s*0.88, s*0.22);
+  ctx.bezierCurveTo(-s*0.72, s*0.34, -s*0.3, s*0.32, -s*0.04, s*0.22);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0d47a1'; // primary tips
   for (let i = 0; i < 5; i++) {
     ctx.beginPath();
-    ctx.ellipse(-s * 0.78 - i * s * 0.07, s * 0.28 + i * s * 0.04, s * 0.04, s * 0.14, 0.15, 0, Math.PI * 2);
+    ctx.ellipse(-s*0.76-i*s*0.07, s*0.3+i*s*0.03, s*0.034, s*0.13, 0.1, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.restore();
 
-  // ── Body — chubby round shape ────────────────────────────
-  ctx.fillStyle = '#43a047'; // rich green
+  // Red body — slightly elongated, not perfectly round
+  ctx.fillStyle = '#c62828';
   ctx.beginPath();
-  ctx.ellipse(0, s * 0.08, s * 0.6, s * 0.68, 0, 0, Math.PI * 2);
+  ctx.ellipse(s*0.02, s*0.1, s*0.52, s*0.60, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.13)'; // underside shading
+  ctx.beginPath();
+  ctx.ellipse(-s*0.1, s*0.22, s*0.26, s*0.38, 0.2, 0, Math.PI*2);
   ctx.fill();
 
-  // Belly — soft cream patch
-  ctx.fillStyle = '#f9f3c8';
+  // Red head
+  ctx.fillStyle = '#c62828';
   ctx.beginPath();
-  ctx.ellipse(s * 0.08, s * 0.22, s * 0.32, s * 0.44, 0.15, 0, Math.PI * 2);
+  ctx.arc(s*0.2, -s*0.52, s*0.38, 0, Math.PI*2);
   ctx.fill();
 
-  // Chest heart patch 💛
-  ctx.fillStyle = '#ffca28';
+  // Bare white facial patch (Scarlet Macaw's defining feature)
+  ctx.fillStyle = '#fafafa';
   ctx.beginPath();
-  ctx.ellipse(s * 0.1, s * 0.0, s * 0.2, s * 0.24, 0, 0, Math.PI * 2);
+  ctx.ellipse(s*0.3, -s*0.52, s*0.2, s*0.16, -0.1, 0, Math.PI*2);
   ctx.fill();
-
-  // ── Big round head ───────────────────────────────────────
-  ctx.fillStyle = '#43a047';
-  ctx.beginPath();
-  ctx.arc(s * 0.18, -s * 0.58, s * 0.44, 0, Math.PI * 2); // bigger head = cuter
-  ctx.fill();
-
-  // ── Cute little head crest (tuft) ───────────────────────
-  const crestBob = Math.sin(time * 5) * 0.08; // wiggles a tiny bit
-  ['#e53935', '#fb8c00', '#fdd835'].forEach((color, i) => {
-    ctx.fillStyle = color;
+  ctx.strokeStyle = 'rgba(160,160,160,0.45)'; ctx.lineWidth = 0.7;
+  for (let i = 0; i < 4; i++) {
     ctx.beginPath();
-    ctx.ellipse(
-      s * 0.1 + i * s * 0.12,
-      -s * 0.98 + crestBob - i * s * 0.08,
-      s * 0.08,
-      s * 0.2 - i * s * 0.04,
-      i * 0.3 - 0.2,
-      0, Math.PI * 2
-    );
-    ctx.fill();
-  });
+    ctx.moveTo(s*0.17+i*s*0.07, -s*0.64);
+    ctx.lineTo(s*0.17+i*s*0.07, -s*0.42);
+    ctx.stroke();
+  }
 
-  // ── Tiny cute beak ───────────────────────────────────────
-  // Upper beak (small rounded triangle)
-  ctx.fillStyle = '#ffa000';
+  // Strongly hooked grey beak
+  ctx.fillStyle = '#757575';
   ctx.beginPath();
-  ctx.moveTo(s * 0.54, -s * 0.62);
-  ctx.quadraticCurveTo(s * 0.88, -s * 0.54, s * 0.54, -s * 0.46);
-  ctx.closePath();
-  ctx.fill();
-  // Lower beak
-  ctx.fillStyle = '#ff8f00';
+  ctx.moveTo(s*0.42, -s*0.62);
+  ctx.bezierCurveTo(s*0.9, -s*0.66, s*0.92, -s*0.5, s*0.62, -s*0.44);
+  ctx.bezierCurveTo(s*0.66, -s*0.54, s*0.5, -s*0.56, s*0.42, -s*0.62);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#424242'; // dark curved tip
+  ctx.beginPath(); ctx.arc(s*0.82, -s*0.54, s*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#9e9e9e'; // lower mandible
   ctx.beginPath();
-  ctx.moveTo(s * 0.54, -s * 0.46);
-  ctx.quadraticCurveTo(s * 0.80, -s * 0.40, s * 0.54, -s * 0.36);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(s*0.44, -s*0.46);
+  ctx.bezierCurveTo(s*0.68, -s*0.42, s*0.7, -s*0.36, s*0.55, -s*0.36);
+  ctx.bezierCurveTo(s*0.48, -s*0.38, s*0.44, -s*0.42, s*0.44, -s*0.46);
+  ctx.closePath(); ctx.fill();
 
-  // ── Big cute eyes ────────────────────────────────────────
-  // Outer white (large!)
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(s * 0.36, -s * 0.65, s * 0.2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Iris (big colourful circle)
-  ctx.fillStyle = '#6a1de8';
-  ctx.beginPath();
-  ctx.arc(s * 0.38, -s * 0.65, s * 0.14, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Pupil
+  // Eye — natural size, yellow iris (macaw trait)
+  ctx.fillStyle = '#fff9c4';
+  ctx.beginPath(); ctx.arc(s*0.28, -s*0.56, s*0.11, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#f9a825';
+  ctx.beginPath(); ctx.arc(s*0.28, -s*0.56, s*0.08, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#111';
-  ctx.beginPath();
-  ctx.arc(s * 0.40, -s * 0.65, s * 0.09, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.29, -s*0.56, s*0.05, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.beginPath(); ctx.arc(s*0.32, -s*0.59, s*0.025, 0, Math.PI*2); ctx.fill();
 
-  // Big sparkly shine (makes eyes look alive!)
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(s * 0.44, -s * 0.70, s * 0.055, 0, Math.PI * 2);
-  ctx.fill();
-  // Small second shine
-  ctx.beginPath();
-  ctx.arc(s * 0.32, -s * 0.60, s * 0.03, 0, Math.PI * 2);
-  ctx.fill();
-
-  // ── Rosy cheek blush ─────────────────────────────────────
-  ctx.globalAlpha = 0.35;
-  ctx.fillStyle = '#ff8a80';
-  ctx.beginPath();
-  ctx.ellipse(s * 0.5, -s * 0.52, s * 0.13, s * 0.08, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // ── Tiny feet peeking out at the bottom ──────────────────
-  ctx.strokeStyle = '#e65100';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  // Left foot
-  ctx.beginPath();
-  ctx.moveTo(-s * 0.1, s * 0.72);
-  ctx.lineTo(-s * 0.22, s * 0.88);
-  ctx.moveTo(-s * 0.22, s * 0.88);
-  ctx.lineTo(-s * 0.32, s * 0.88);
-  ctx.moveTo(-s * 0.22, s * 0.88);
-  ctx.lineTo(-s * 0.18, s * 1.0);
-  ctx.moveTo(-s * 0.22, s * 0.88);
-  ctx.lineTo(-s * 0.08, s * 0.96);
-  ctx.stroke();
-  // Right foot
-  ctx.beginPath();
-  ctx.moveTo(s * 0.14, s * 0.72);
-  ctx.lineTo(s * 0.22, s * 0.88);
-  ctx.moveTo(s * 0.22, s * 0.88);
-  ctx.lineTo(s * 0.34, s * 0.88);
-  ctx.moveTo(s * 0.22, s * 0.88);
-  ctx.lineTo(s * 0.18, s * 1.0);
-  ctx.moveTo(s * 0.22, s * 0.88);
-  ctx.lineTo(s * 0.08, s * 0.96);
-  ctx.stroke();
+  // Zygodactyl feet (2 toes forward, 2 back — parrot feature)
+  ctx.strokeStyle = '#616161'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  [[-s*0.12, s*0.65], [s*0.14, s*0.65]].forEach(([fx, fy]) => {
+    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx, fy+s*0.18); ctx.stroke();
+    [[-s*0.18,s*0.04],[-s*0.06,s*0.1],[s*0.06,s*0.1],[s*0.03,-s*0.12]].forEach(([tx,ty]) => {
+      ctx.beginPath(); ctx.moveTo(fx, fy+s*0.18); ctx.lineTo(fx+tx, fy+s*0.28+ty); ctx.stroke();
+    });
+  });
 
   ctx.restore();
 }
 
-// ── 🦆 Daffy the Duck ────────────────────────────────────
+// 🦆 Mallard Duck — green head, white collar, chestnut breast, blue speculum
 function drawDuck(time, previewMode = false) {
   ctx.save();
   if (!previewMode) {
@@ -549,127 +481,116 @@ function drawDuck(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.95 : Math.sin(time * 3) * 0.25;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.9 : Math.sin(time * 3) * 0.25;
 
-  // Tail
-  ctx.fillStyle = '#ffe082';
+  // White upturned tail feathers
+  ctx.fillStyle = '#f5f5f5';
   ctx.beginPath();
-  ctx.ellipse(-s * 0.55, s * 0.1, s * 0.18, s * 0.38, 0.4, 0, Math.PI * 2);
+  ctx.ellipse(-s*0.52, -s*0.04, s*0.09, s*0.26, -0.5, 0, Math.PI*2);
   ctx.fill();
-
-  // Wing — full spread from shoulder
-  ctx.save();
-  ctx.translate(s * 0.0, -s * 0.0); // shoulder
-  ctx.rotate(-wing);
-  // White outer wing
   ctx.fillStyle = '#e0e0e0';
   ctx.beginPath();
-  ctx.moveTo(s * 0.12, s * 0.08);
-  ctx.bezierCurveTo(-s * 0.2, -s * 0.04, -s * 0.75, -s * 0.0, -s * 1.1, s * 0.14);
-  ctx.bezierCurveTo(-s * 0.75, s * 0.38, -s * 0.2, s * 0.38, s * 0.12, s * 0.24);
-  ctx.closePath();
+  ctx.ellipse(-s*0.58, s*0.06, s*0.07, s*0.2, -0.28, 0, Math.PI*2);
   ctx.fill();
-  // Blue speculum band
-  ctx.fillStyle = '#1e88e5';
+
+  // Wing — pivots from shoulder
+  ctx.save();
+  ctx.translate(s*0.0, -s*0.18);
+  ctx.rotate(-wing);
+  ctx.fillStyle = '#8d6e63'; // brown-grey outer wing
   ctx.beginPath();
-  ctx.moveTo(-s * 0.15, s * 0.12);
-  ctx.bezierCurveTo(-s * 0.4, s * 0.08, -s * 0.75, s * 0.12, -s * 0.9, s * 0.22);
-  ctx.bezierCurveTo(-s * 0.75, s * 0.32, -s * 0.4, s * 0.30, -s * 0.15, s * 0.24);
-  ctx.closePath();
-  ctx.fill();
-  // Primary tips
-  ctx.fillStyle = '#bdbdbd';
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-s*0.28, s*0.04, -s*0.86, s*0.06, -s*1.08, s*0.18);
+  ctx.bezierCurveTo(-s*0.86, s*0.42, -s*0.28, s*0.4, 0, s*0.28);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#1565c0'; // blue speculum
+  ctx.beginPath();
+  ctx.moveTo(-s*0.08, s*0.1);
+  ctx.bezierCurveTo(-s*0.34, s*0.12, -s*0.72, s*0.14, -s*0.86, s*0.22);
+  ctx.bezierCurveTo(-s*0.72, s*0.32, -s*0.34, s*0.3, -s*0.08, s*0.22);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; // white border on speculum
+  ctx.beginPath();
+  ctx.moveTo(-s*0.08, s*0.1);
+  ctx.bezierCurveTo(-s*0.34, s*0.12, -s*0.72, s*0.14, -s*0.86, s*0.22);
+  ctx.stroke();
+  ctx.fillStyle = '#5d4037'; // primary tips
   for (let i = 0; i < 5; i++) {
     ctx.beginPath();
-    ctx.ellipse(-s * 0.78 - i * s * 0.07, s * 0.28 + i * s * 0.04, s * 0.04, s * 0.14, 0.15, 0, Math.PI * 2);
+    ctx.ellipse(-s*0.74-i*s*0.07, s*0.28+i*s*0.03, s*0.034, s*0.12, 0.1, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.restore();
 
-  // Body — very round and chubby
-  ctx.fillStyle = '#ffee58';
+  // Grey-brown body
+  ctx.fillStyle = '#8d6e63';
   ctx.beginPath();
-  ctx.ellipse(0, s * 0.1, s * 0.62, s * 0.7, 0, 0, Math.PI * 2);
+  ctx.ellipse(s*0.0, s*0.12, s*0.54, s*0.58, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#bcaaa4'; // lighter belly
+  ctx.beginPath();
+  ctx.ellipse(s*0.08, s*0.2, s*0.3, s*0.4, 0.1, 0, Math.PI*2);
   ctx.fill();
 
-  // Belly lighter patch
-  ctx.fillStyle = '#fff9c4';
+  // Chestnut breast patch
+  ctx.fillStyle = '#5d4037';
   ctx.beginPath();
-  ctx.ellipse(s * 0.1, s * 0.25, s * 0.34, s * 0.46, 0.15, 0, Math.PI * 2);
+  ctx.ellipse(s*0.18, s*0.02, s*0.26, s*0.3, -0.2, 0, Math.PI*2);
   ctx.fill();
 
-  // Head
-  ctx.fillStyle = '#ffee58';
+  // White neck ring
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = s*0.11;
   ctx.beginPath();
-  ctx.arc(s * 0.15, -s * 0.55, s * 0.43, 0, Math.PI * 2);
+  ctx.arc(s*0.18, -s*0.3, s*0.22, Math.PI*0.55, Math.PI*1.3);
+  ctx.stroke();
+
+  // Iridescent green head
+  const hg = ctx.createRadialGradient(s*0.1, -s*0.56, s*0.04, s*0.18, -s*0.5, s*0.34);
+  hg.addColorStop(0, '#66bb6a');
+  hg.addColorStop(0.5, '#1b5e20');
+  hg.addColorStop(1, '#0a3311');
+  ctx.fillStyle = hg;
+  ctx.beginPath();
+  ctx.ellipse(s*0.18, -s*0.5, s*0.34, s*0.3, 0, 0, Math.PI*2);
   ctx.fill();
 
-  // Cute little tuft on top
-  ['#ffa000', '#ff8f00'].forEach((c, i) => {
-    ctx.fillStyle = c;
+  // Orange-yellow flat bill with dark saddle
+  ctx.fillStyle = '#fb8c00';
+  ctx.beginPath();
+  ctx.ellipse(s*0.55, -s*0.52, s*0.23, s*0.09, 0.05, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#1a1a1a'; // dark saddle tip
+  ctx.beginPath();
+  ctx.ellipse(s*0.68, -s*0.52, s*0.09, s*0.06, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#f57c00'; // lower bill
+  ctx.beginPath();
+  ctx.ellipse(s*0.55, -s*0.44, s*0.2, s*0.07, 0.05, 0, Math.PI*2);
+  ctx.fill();
+
+  // Eye — small dark, with white ring (mallard trait)
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(s*0.31, -s*0.52, s*0.075, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(s*0.31, -s*0.52, s*0.055, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath(); ctx.arc(s*0.34, -s*0.55, s*0.02, 0, Math.PI*2); ctx.fill();
+
+  // Webbed orange feet
+  ctx.fillStyle = '#fb8c00';
+  [[-s*0.12, s*0.64], [s*0.12, s*0.66]].forEach(([fx, fy]) => {
     ctx.beginPath();
-    ctx.ellipse(s * 0.1 + i * s * 0.14, -s * 0.96 + i * s * 0.06, s * 0.07, s * 0.17, i * 0.3 - 0.1, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Flat orange bill
-  ctx.fillStyle = '#ff8f00';
-  ctx.beginPath();
-  ctx.ellipse(s * 0.56, -s * 0.56, s * 0.26, s * 0.1, 0.1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e65100';
-  ctx.beginPath();
-  ctx.ellipse(s * 0.56, -s * 0.50, s * 0.22, s * 0.08, 0.05, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Big eye
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(s * 0.36, -s * 0.65, s * 0.19, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#1a237e';
-  ctx.beginPath();
-  ctx.arc(s * 0.38, -s * 0.65, s * 0.12, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#111';
-  ctx.beginPath();
-  ctx.arc(s * 0.39, -s * 0.65, s * 0.08, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(s * 0.44, -s * 0.70, s * 0.05, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Blush
-  ctx.globalAlpha = 0.35;
-  ctx.fillStyle = '#ff8a80';
-  ctx.beginPath();
-  ctx.ellipse(s * 0.5, -s * 0.52, s * 0.12, s * 0.07, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Orange feet
-  ctx.strokeStyle = '#e65100';
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  [[-s*0.12, s*0.72], [s*0.18, s*0.72]].forEach(([fx, fy]) => {
-    const dir = fx < 0 ? -1 : 1;
-    ctx.beginPath();
-    ctx.moveTo(fx, fy);
-    ctx.lineTo(fx + dir * s * 0.14, fy + s * 0.2);
-    ctx.moveTo(fx + dir * s * 0.14, fy + s * 0.2);
-    ctx.lineTo(fx + dir * s * 0.28, fy + s * 0.2);
-    ctx.moveTo(fx + dir * s * 0.14, fy + s * 0.2);
-    ctx.lineTo(fx + dir * s * 0.1, fy + s * 0.34);
-    ctx.moveTo(fx + dir * s * 0.14, fy + s * 0.2);
-    ctx.lineTo(fx + dir * s * 0.0, fy + s * 0.28);
-    ctx.stroke();
+    ctx.moveTo(fx, fy); ctx.lineTo(fx+s*0.02, fy+s*0.2);
+    ctx.lineTo(fx+s*0.18, fy+s*0.2); ctx.lineTo(fx+s*0.08, fy+s*0.32);
+    ctx.lineTo(fx-s*0.04, fy+s*0.2); ctx.lineTo(fx-s*0.15, fy+s*0.22);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#e65100'; ctx.lineWidth = 0.8; ctx.stroke();
   });
 
   ctx.restore();
 }
 
-// ── 🦉 Hoot the Owl ──────────────────────────────────────
+// 🦉 Great Horned Owl — barred brown body, facial disc, ear tufts, amber eyes
 function drawOwl(time, previewMode = false) {
   ctx.save();
   if (!previewMode) {
@@ -679,123 +600,112 @@ function drawOwl(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.95 : Math.sin(time * 3) * 0.25;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 8) * 0.9 : Math.sin(time * 3) * 0.25;
 
-  // Tail
-  ctx.fillStyle = '#5d4037';
-  ctx.beginPath();
-  ctx.ellipse(-s * 0.48, s * 0.18, s * 0.16, s * 0.35, 0.3, 0, Math.PI * 2);
-  ctx.fill();
+  // Short barred tail
+  ['#5d4037','#795548','#4e342e'].forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.ellipse(-s*0.44+i*s*0.06, s*0.22, s*0.065, s*0.3, i*0.14-0.1, 0, Math.PI*2);
+    ctx.fill();
+  });
 
-  // Wing — wide owl wings spread from shoulder
+  // Wide wing — owls have very broad wings; pivots from shoulder
   ctx.save();
-  ctx.translate(s * 0.0, -s * 0.02);
+  ctx.translate(s*0.0, -s*0.18);
   ctx.rotate(-wing);
-  // Main wing (brown)
   ctx.fillStyle = '#6d4c41';
   ctx.beginPath();
-  ctx.moveTo(s * 0.14, s * 0.08);
-  ctx.bezierCurveTo(-s * 0.15, -s * 0.06, -s * 0.8, -s * 0.04, -s * 1.15, s * 0.1);
-  ctx.bezierCurveTo(-s * 0.8, s * 0.4, -s * 0.15, s * 0.4, s * 0.14, s * 0.26);
-  ctx.closePath();
-  ctx.fill();
-  // Darker barring bands
-  ctx.strokeStyle = '#4e342e';
-  ctx.lineWidth = 1.5;
-  for (let i = 0; i < 6; i++) {
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-s*0.22, s*0.04, -s*0.9, s*0.05, -s*1.22, s*0.18);
+  ctx.bezierCurveTo(-s*0.9, s*0.44, -s*0.22, s*0.42, 0, s*0.3);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5; // barring
+  for (let i = 0; i < 7; i++) {
     ctx.beginPath();
-    ctx.moveTo(-s * 0.05 - i * s * 0.17, s * 0.06 + i * s * 0.01);
-    ctx.lineTo(-s * 0.1  - i * s * 0.17, s * 0.3  + i * s * 0.02);
+    ctx.moveTo(-s*0.04-i*s*0.16, s*0.04+i*s*0.005);
+    ctx.lineTo(-s*0.08-i*s*0.16, s*0.28+i*s*0.015);
     ctx.stroke();
   }
-  // Primary feather tips (darker)
-  ctx.fillStyle = '#3e2723';
-  for (let i = 0; i < 5; i++) {
+  ctx.fillStyle = '#3e2723'; // primary tips
+  for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    ctx.ellipse(-s * 0.82 - i * s * 0.07, s * 0.28 + i * s * 0.04, s * 0.04, s * 0.15, 0.15, 0, Math.PI * 2);
+    ctx.ellipse(-s*0.9-i*s*0.06, s*0.3+i*s*0.025, s*0.028, s*0.13, 0.1, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.restore();
 
-  // Round body
-  ctx.fillStyle = '#6d4c41';
+  // Mottled brown body
+  ctx.fillStyle = '#795548';
   ctx.beginPath();
-  ctx.ellipse(0, s * 0.08, s * 0.58, s * 0.68, 0, 0, Math.PI * 2);
+  ctx.ellipse(s*0.0, s*0.1, s*0.52, s*0.63, 0, 0, Math.PI*2);
   ctx.fill();
+  ctx.strokeStyle = 'rgba(62,39,35,0.4)'; ctx.lineWidth = 2; // body barring
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(s*0.04, -s*0.2+i*s*0.16, s*0.42, s*0.04, 0, Math.PI*0.15, Math.PI*0.85);
+    ctx.stroke();
+  }
 
-  // Speckled chest — heart-shaped white patch
+  // White/cream barred chest
   ctx.fillStyle = '#efebe9';
   ctx.beginPath();
-  ctx.ellipse(s * 0.06, s * 0.18, s * 0.33, s * 0.48, 0.1, 0, Math.PI * 2);
+  ctx.ellipse(s*0.1, s*0.14, s*0.28, s*0.42, 0.1, 0, Math.PI*2);
   ctx.fill();
-  // Speckle dots on chest
-  ctx.fillStyle = 'rgba(109,76,65,0.3)';
-  [[0, 0], [s*0.14, s*0.1], [-s*0.1, s*0.18], [s*0.05, s*0.32], [-s*0.08, -s*0.1]].forEach(([dx, dy]) => {
+  ctx.strokeStyle = 'rgba(109,76,65,0.5)'; ctx.lineWidth = 1.5;
+  for (let i = 0; i < 5; i++) {
     ctx.beginPath();
-    ctx.arc(s * 0.06 + dx, s * 0.18 + dy, s * 0.045, 0, Math.PI * 2);
-    ctx.fill();
-  });
+    ctx.ellipse(s*0.1, -s*0.02+i*s*0.15, s*0.22, s*0.03, 0.1, Math.PI*0.12, Math.PI*0.88);
+    ctx.stroke();
+  }
 
-  // Facial disc (heart-shaped face)
+  // Grey facial disc
   ctx.fillStyle = '#bcaaa4';
   ctx.beginPath();
-  ctx.arc(s * 0.15, -s * 0.52, s * 0.42, 0, Math.PI * 2);
+  ctx.ellipse(s*0.16, -s*0.5, s*0.35, s*0.3, 0, 0, Math.PI*2);
   ctx.fill();
+  ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(s*0.16, -s*0.5, s*0.35, s*0.3, 0, 0, Math.PI*2);
+  ctx.stroke();
 
-  // Ear tufts
-  [[-s*0.08, -s*0.94], [s*0.34, -s*0.92]].forEach(([ex, ey], i) => {
-    ctx.fillStyle = '#4e342e';
+  // Ear tufts — Great Horned Owl's trademark
+  [[-s*0.04, -s*0.8], [s*0.3, -s*0.78]].forEach(([ex, ey], i) => {
+    ctx.fillStyle = '#3e2723';
     ctx.beginPath();
-    ctx.ellipse(ex, ey, s * 0.1, s * 0.22, i === 0 ? -0.25 : 0.25, 0, Math.PI * 2);
+    ctx.ellipse(ex, ey, s*0.08, s*0.22, i===0?-0.28:0.28, 0, Math.PI*2);
     ctx.fill();
-    ctx.fillStyle = '#6d4c41';
+    ctx.fillStyle = '#8d6e63';
     ctx.beginPath();
-    ctx.ellipse(ex, ey + s*0.04, s * 0.06, s * 0.14, i === 0 ? -0.25 : 0.25, 0, Math.PI * 2);
+    ctx.ellipse(ex+(i===0?s*0.02:-s*0.02), ey+s*0.04, s*0.04, s*0.13, i===0?-0.28:0.28, 0, Math.PI*2);
     ctx.fill();
   });
 
-  // HUGE round eyes
-  [s * 0.02, s * 0.30].forEach((ex, i) => {
-    const ey = -s * 0.58;
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(ex, ey, s * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#f9a825'; // golden iris
-    ctx.beginPath();
-    ctx.arc(ex, ey, s * 0.13, 0, Math.PI * 2);
-    ctx.fill();
+  // Large amber eyes (owls genuinely have large eyes — realistic!)
+  [s*0.04, s*0.28].forEach(ex => {
+    const ey = -s*0.52;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(ex, ey, s*0.13, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#f57f17'; // amber iris
+    ctx.beginPath(); ctx.arc(ex, ey, s*0.10, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#111';
-    ctx.beginPath();
-    ctx.arc(ex, ey, s * 0.09, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(ex + s*0.05, ey - s*0.05, s * 0.045, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(ex, ey, s*0.065, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath(); ctx.arc(ex+s*0.04, ey-s*0.04, s*0.028, 0, Math.PI*2); ctx.fill();
   });
 
-  // Tiny triangle beak between eyes
-  ctx.fillStyle = '#ff8f00';
+  // Hooked beak between eyes, pointing downward
+  ctx.fillStyle = '#424242';
   ctx.beginPath();
-  ctx.moveTo(s * 0.14, -s * 0.46);
-  ctx.lineTo(s * 0.22, -s * 0.34);
-  ctx.lineTo(s * 0.06, -s * 0.34);
-  ctx.closePath();
-  ctx.fill();
-
-  // Blush
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = '#ff8a80';
-  ctx.beginPath();
-  ctx.ellipse(s * 0.44, -s * 0.52, s * 0.1, s * 0.07, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.moveTo(s*0.14, -s*0.42);
+  ctx.bezierCurveTo(s*0.22, -s*0.32, s*0.22, -s*0.26, s*0.14, -s*0.26);
+  ctx.bezierCurveTo(s*0.06, -s*0.26, s*0.05, -s*0.32, s*0.14, -s*0.42);
+  ctx.closePath(); ctx.fill();
 
   ctx.restore();
 }
 
-// ── 🐣 Chirpy the Baby Chick ──────────────────────────────
+// 🐣 Baby Chick — fluffy downy yellow, small eyes, egg tooth, stubby wings
 function drawChick(time, previewMode = false) {
   ctx.save();
   if (!previewMode) {
@@ -805,130 +715,81 @@ function drawChick(time, previewMode = false) {
     ctx.rotate(parrot.angle);
   }
   const s = PARROT_SIZE;
-  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 12) * 0.95 : Math.sin(time * 3) * 0.25;
+  const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 12) * 0.9 : Math.sin(time * 3) * 0.25;
 
-  // Fluffy tail
-  ['#fff176', '#ffee58', '#fdd835'].forEach((c, i) => {
+  // Small fluffy tail wisps
+  ['#fff9c4','#fff176','#ffee58'].forEach((c, i) => {
     ctx.fillStyle = c;
     ctx.beginPath();
-    ctx.arc(-s * (0.42 + i * 0.06), s * (0.0 - i * 0.08), s * (0.18 - i * 0.04), 0, Math.PI * 2);
+    ctx.ellipse(-s*(0.48+i*0.04), s*(0.0+i*0.06), s*0.08, s*0.18, -0.4+i*0.18, 0, Math.PI*2);
     ctx.fill();
   });
 
-  // Stubby chick wing — flaps like crazy from shoulder!
+  // Stubby wing — chick wings are tiny and undeveloped; pivots from shoulder
   ctx.save();
-  ctx.translate(s * 0.0, s * 0.0);
+  ctx.translate(s*0.0, -s*0.1);
   ctx.rotate(-wing);
   ctx.fillStyle = '#fdd835';
   ctx.beginPath();
-  ctx.moveTo(s * 0.1, s * 0.06);
-  ctx.bezierCurveTo(-s * 0.1, -s * 0.04, -s * 0.55, -s * 0.0, -s * 0.72, s * 0.1);
-  ctx.bezierCurveTo(-s * 0.55, s * 0.3, -s * 0.1, s * 0.3, s * 0.1, s * 0.2);
-  ctx.closePath();
-  ctx.fill();
-  // Tiny fluffy tips
-  ctx.fillStyle = '#fff176';
-  for (let i = 0; i < 3; i++) {
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-s*0.18, s*0.02, -s*0.56, s*0.04, -s*0.72, s*0.14);
+  ctx.bezierCurveTo(-s*0.56, s*0.3, -s*0.18, s*0.28, 0, s*0.2);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff176'; // downy tips
+  for (let i = 0; i < 4; i++) {
     ctx.beginPath();
-    ctx.ellipse(-s * 0.52 - i * s * 0.08, s * 0.22 + i * s * 0.04, s * 0.05, s * 0.12, 0.2, 0, Math.PI * 2);
+    ctx.arc(-s*0.14-i*s*0.14, s*0.1+i*s*0.02, s*0.065, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.restore();
 
-  // Round fluffy body (very round!)
-  const bodyGrad = ctx.createRadialGradient(-s*0.1, -s*0.1, s*0.1, 0, s*0.08, s*0.68);
-  bodyGrad.addColorStop(0, '#fff9c4');
-  bodyGrad.addColorStop(1, '#ffee58');
-  ctx.fillStyle = bodyGrad;
-  ctx.beginPath();
-  ctx.arc(0, s * 0.08, s * 0.68, 0, Math.PI * 2); // nearly perfect circle = max cuteness
-  ctx.fill();
-
-  // Fluffy chest wisps
-  ctx.fillStyle = '#fffde7';
-  [[s*0.2, -s*0.08], [s*0.28, s*0.08], [s*0.18, s*0.22]].forEach(([fx, fy]) => {
-    ctx.beginPath();
-    ctx.arc(fx, fy, s * 0.12, 0, Math.PI * 2);
-    ctx.fill();
+  // Fluffy round body (overlapping circles for downy texture)
+  [[0, s*0.1, s*0.58,'#ffee58'],[s*0.16, s*0.0, s*0.42,'#fff176'],
+   [-s*0.14, s*0.18, s*0.38,'#ffee58'],[s*0.0, s*0.26, s*0.36,'#fff9c4']].forEach(([bx,by,br,c]) => {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
   });
 
-  // Big round head (almost same size as body — baby proportions!)
-  const headGrad = ctx.createRadialGradient(s*0.05, -s*0.65, s*0.05, s*0.15, -s*0.55, s*0.42);
-  headGrad.addColorStop(0, '#fff9c4');
-  headGrad.addColorStop(1, '#ffee58');
-  ctx.fillStyle = headGrad;
-  ctx.beginPath();
-  ctx.arc(s * 0.15, -s * 0.55, s * 0.46, 0, Math.PI * 2);
-  ctx.fill();
+  // Round head — natural proportions for a baby bird
+  const hg = ctx.createRadialGradient(s*0.1, -s*0.56, s*0.04, s*0.16, -s*0.5, s*0.34);
+  hg.addColorStop(0, '#fff9c4'); hg.addColorStop(1, '#ffee58');
+  ctx.fillStyle = hg;
+  ctx.beginPath(); ctx.arc(s*0.16, -s*0.5, s*0.36, 0, Math.PI*2); ctx.fill();
 
-  // Single fluffy tuft on top (just hatched look!)
+  // Single spiky down tuft on top (just hatched!)
   ctx.fillStyle = '#fdd835';
-  ctx.beginPath();
-  ctx.arc(s * 0.12, -s * 1.0, s * 0.12, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.1, -s*0.84, s*0.09, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#ffee58';
-  ctx.beginPath();
-  ctx.arc(s * 0.22, -s * 0.94, s * 0.09, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.2, -s*0.8, s*0.065, 0, Math.PI*2); ctx.fill();
 
-  // Tiny little beak (so cute!)
-  ctx.fillStyle = '#ff8f00';
+  // Tiny straight beak
+  ctx.fillStyle = '#fb8c00';
   ctx.beginPath();
-  ctx.moveTo(s * 0.54, -s * 0.58);
-  ctx.lineTo(s * 0.72, -s * 0.52);
-  ctx.lineTo(s * 0.54, -s * 0.46);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(s*0.46, -s*0.52);
+  ctx.lineTo(s*0.64, -s*0.48);
+  ctx.lineTo(s*0.46, -s*0.44);
+  ctx.closePath(); ctx.fill();
+  // Egg tooth (white dot on upper bill — real baby bird feature!)
+  ctx.fillStyle = '#fffde7';
+  ctx.beginPath(); ctx.arc(s*0.58, -s*0.505, s*0.022, 0, Math.PI*2); ctx.fill();
 
-  // VERY big eyes (takes up lots of face — max kawaii)
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(s * 0.34, -s * 0.65, s * 0.22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#1b5e20';
-  ctx.beginPath();
-  ctx.arc(s * 0.36, -s * 0.65, s * 0.15, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#111';
-  ctx.beginPath();
-  ctx.arc(s * 0.38, -s * 0.65, s * 0.1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(s * 0.43, -s * 0.71, s * 0.06, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(s * 0.30, -s * 0.60, s * 0.03, 0, Math.PI * 2);
-  ctx.fill();
+  // Small natural eyes — babies have dark eyes, not huge anime eyes
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(s*0.29, -s*0.53, s*0.075, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.beginPath(); ctx.arc(s*0.32, -s*0.56, s*0.022, 0, Math.PI*2); ctx.fill();
 
-  // Big rosy cheeks
-  ctx.globalAlpha = 0.4;
-  ctx.fillStyle = '#ff8a80';
-  ctx.beginPath();
-  ctx.ellipse(s * 0.52, -s * 0.50, s * 0.14, s * 0.09, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Tiny stick legs
-  ctx.strokeStyle = '#e65100';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  [[-s*0.1, s*0.72], [s*0.2, s*0.72]].forEach(([lx, ly]) => {
-    ctx.beginPath();
-    ctx.moveTo(lx, ly);
-    ctx.lineTo(lx, ly + s * 0.28);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(lx, ly + s * 0.28);
-    ctx.lineTo(lx - s * 0.14, ly + s * 0.28);
-    ctx.moveTo(lx, ly + s * 0.28);
-    ctx.lineTo(lx + s * 0.14, ly + s * 0.28);
-    ctx.stroke();
+  // Tiny legs
+  ctx.strokeStyle = '#e65100'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  [[-s*0.08, s*0.62], [s*0.16, s*0.64]].forEach(([lx, ly]) => {
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly+s*0.22); ctx.stroke();
+    [[-s*0.12,s*0.05],[s*0.0,s*0.08],[s*0.12,s*0.04]].forEach(([tx,ty]) => {
+      ctx.beginPath(); ctx.moveTo(lx, ly+s*0.22); ctx.lineTo(lx+tx, ly+s*0.28+ty); ctx.stroke();
+    });
   });
 
   ctx.restore();
 }
-
 // ── Characters list ───────────────────────────────────────
 // Each entry: name, emoji, fun description, and draw function
 const CHARACTERS = [
