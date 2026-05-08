@@ -91,12 +91,16 @@ async def run_tests():
         record("Canvas has been painted (background rendered)", has_pixels)
 
         # ─────────────────────────────────────────────────────
-        # TEST 5: Pressing Space transitions to 'playing' state
+        # TEST 5: Space from start → 'select', then → 'playing'
         # ─────────────────────────────────────────────────────
-        await page.keyboard.press("Space")
+        await page.keyboard.press("Space")  # start → select
         await asyncio.sleep(0.1)
         state = await page.evaluate("() => gameState")
-        record("Space key starts the game (state → 'playing')", state == "playing", f"state={state!r}")
+        record("Space key opens character select screen (state → 'select')", state == "select", f"state={state!r}")
+        await page.keyboard.press("Space")  # select → playing
+        await asyncio.sleep(0.1)
+        state = await page.evaluate("() => gameState")
+        record("Second Space confirms character and starts game (state → 'playing')", state == "playing", f"state={state!r}")
 
         # ─────────────────────────────────────────────────────
         # TEST 6: Parrot exists and has valid position
@@ -170,13 +174,21 @@ async def run_tests():
         )
 
         # ─────────────────────────────────────────────────────
-        # TEST 12: Pressing Space on game-over screen restarts game
+        # TEST 12: Space on game-over goes to 'select', then Space starts game
         # ─────────────────────────────────────────────────────
-        await page.keyboard.press("Space")
+        await page.keyboard.press("Space")  # gameover → select
         await asyncio.sleep(0.1)
         state = await page.evaluate("() => gameState")
         record(
-            "Space on game-over screen restarts the game",
+            "Space on game-over returns to character select",
+            state == "select",
+            f"state={state!r}",
+        )
+        await page.keyboard.press("Space")  # select → playing
+        await asyncio.sleep(0.1)
+        state = await page.evaluate("() => gameState")
+        record(
+            "Space on select screen starts a new game",
             state == "playing",
             f"state={state!r}",
         )
@@ -212,7 +224,9 @@ async def run_tests():
         # TEST 15: requestAnimationFrame loop is running
         # ─────────────────────────────────────────────────────
         # The loop runs ~60fps; sample parrot y twice to confirm movement
-        await page.keyboard.press("Space")  # start game
+        await page.keyboard.press("Space")  # start → select
+        await asyncio.sleep(0.05)
+        await page.keyboard.press("Space")  # select → playing
         await asyncio.sleep(0.05)
         y1 = await page.evaluate("() => parrot.y")
         await asyncio.sleep(0.3)

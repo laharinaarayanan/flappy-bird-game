@@ -11,11 +11,15 @@ const W = canvas.width;   // 480
 const H = canvas.height;  // 640
 
 // ── Game states ──────────────────────────────────────────
-// The game can be in one of three states:
+// The game can be in one of four states:
 //   'start'    → show the title screen
+//   'select'   → pick your character!
 //   'playing'  → the game is running!
 //   'gameover' → the player lost, show the score
 let gameState = 'start';
+
+// ── Character selection ───────────────────────────────────
+let selectedChar = 0; // index of the chosen character (0–3)
 
 // ── Score ─────────────────────────────────────────────────
 let score = 0;
@@ -350,14 +354,15 @@ function drawTrees() {
 }
 
 // Draw the colorful parrot 🦜 — cute chubby version!
-function drawParrot(time) {
+// previewMode=true → draw at (0,0) without game physics translation/rotation
+function drawParrot(time, previewMode = false) {
   ctx.save();
-
-  // Parrot always appears at PARROT_X on screen (the camera follows the bird's world position)
-  ctx.translate(PARROT_X, parrot.y);
-  const targetAngle = Math.max(-0.4, Math.min(1.0, parrot.vy * 0.06));
-  parrot.angle += (targetAngle - parrot.angle) * 0.15;
-  ctx.rotate(parrot.angle);
+  if (!previewMode) {
+    ctx.translate(PARROT_X, parrot.y);
+    const targetAngle = Math.max(-0.4, Math.min(1.0, parrot.vy * 0.06));
+    parrot.angle += (targetAngle - parrot.angle) * 0.15;
+    ctx.rotate(parrot.angle);
+  }
 
   const s = PARROT_SIZE; // shorthand for size
 
@@ -520,7 +525,448 @@ function drawParrot(time) {
   ctx.restore();
 }
 
-// Draw current score, level, and high score on screen
+// ── 🦆 Daffy the Duck ────────────────────────────────────
+function drawDuck(time, previewMode = false) {
+  ctx.save();
+  if (!previewMode) {
+    ctx.translate(PARROT_X, parrot.y);
+    const targetAngle = Math.max(-0.4, Math.min(1.0, parrot.vy * 0.06));
+    parrot.angle += (targetAngle - parrot.angle) * 0.15;
+    ctx.rotate(parrot.angle);
+  }
+  const s = PARROT_SIZE;
+  const wing = gameState === 'playing' ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
+
+  // Tail
+  ctx.fillStyle = '#ffe082';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.55, s * 0.1, s * 0.18, s * 0.38, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wing
+  ctx.save();
+  ctx.rotate(-wing);
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.05, s * 0.05, s * 0.5, s * 0.22, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fffde7';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.05, 0, s * 0.3, s * 0.12, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Body — very round and chubby
+  ctx.fillStyle = '#ffee58';
+  ctx.beginPath();
+  ctx.ellipse(0, s * 0.1, s * 0.62, s * 0.7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Belly lighter patch
+  ctx.fillStyle = '#fff9c4';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.1, s * 0.25, s * 0.34, s * 0.46, 0.15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#ffee58';
+  ctx.beginPath();
+  ctx.arc(s * 0.15, -s * 0.55, s * 0.43, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cute little tuft on top
+  ['#ffa000', '#ff8f00'].forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.ellipse(s * 0.1 + i * s * 0.14, -s * 0.96 + i * s * 0.06, s * 0.07, s * 0.17, i * 0.3 - 0.1, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Flat orange bill
+  ctx.fillStyle = '#ff8f00';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.56, -s * 0.56, s * 0.26, s * 0.1, 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#e65100';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.56, -s * 0.50, s * 0.22, s * 0.08, 0.05, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big eye
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(s * 0.36, -s * 0.65, s * 0.19, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1a237e';
+  ctx.beginPath();
+  ctx.arc(s * 0.38, -s * 0.65, s * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  ctx.arc(s * 0.39, -s * 0.65, s * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(s * 0.44, -s * 0.70, s * 0.05, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Blush
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#ff8a80';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.5, -s * 0.52, s * 0.12, s * 0.07, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Orange feet
+  ctx.strokeStyle = '#e65100';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  [[-s*0.12, s*0.72], [s*0.18, s*0.72]].forEach(([fx, fy]) => {
+    const dir = fx < 0 ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(fx, fy);
+    ctx.lineTo(fx + dir * s * 0.14, fy + s * 0.2);
+    ctx.moveTo(fx + dir * s * 0.14, fy + s * 0.2);
+    ctx.lineTo(fx + dir * s * 0.28, fy + s * 0.2);
+    ctx.moveTo(fx + dir * s * 0.14, fy + s * 0.2);
+    ctx.lineTo(fx + dir * s * 0.1, fy + s * 0.34);
+    ctx.moveTo(fx + dir * s * 0.14, fy + s * 0.2);
+    ctx.lineTo(fx + dir * s * 0.0, fy + s * 0.28);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+// ── 🦉 Hoot the Owl ──────────────────────────────────────
+function drawOwl(time, previewMode = false) {
+  ctx.save();
+  if (!previewMode) {
+    ctx.translate(PARROT_X, parrot.y);
+    const targetAngle = Math.max(-0.4, Math.min(1.0, parrot.vy * 0.06));
+    parrot.angle += (targetAngle - parrot.angle) * 0.15;
+    ctx.rotate(parrot.angle);
+  }
+  const s = PARROT_SIZE;
+  const wing = gameState === 'playing' ? Math.sin(time * 9) * 0.5 : Math.sin(time * 3) * 0.15;
+
+  // Tail
+  ctx.fillStyle = '#5d4037';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.48, s * 0.18, s * 0.16, s * 0.35, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wing
+  ctx.save();
+  ctx.rotate(-wing);
+  ctx.fillStyle = '#795548';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.05, s * 0.05, s * 0.52, s * 0.24, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  // Wing feather lines
+  ctx.strokeStyle = '#4e342e';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.4 + i * s * 0.2, s * 0.0);
+    ctx.lineTo(-s * 0.35 + i * s * 0.2, s * 0.2);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Round body
+  ctx.fillStyle = '#6d4c41';
+  ctx.beginPath();
+  ctx.ellipse(0, s * 0.08, s * 0.58, s * 0.68, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Speckled chest — heart-shaped white patch
+  ctx.fillStyle = '#efebe9';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.06, s * 0.18, s * 0.33, s * 0.48, 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  // Speckle dots on chest
+  ctx.fillStyle = 'rgba(109,76,65,0.3)';
+  [[0, 0], [s*0.14, s*0.1], [-s*0.1, s*0.18], [s*0.05, s*0.32], [-s*0.08, -s*0.1]].forEach(([dx, dy]) => {
+    ctx.beginPath();
+    ctx.arc(s * 0.06 + dx, s * 0.18 + dy, s * 0.045, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Facial disc (heart-shaped face)
+  ctx.fillStyle = '#bcaaa4';
+  ctx.beginPath();
+  ctx.arc(s * 0.15, -s * 0.52, s * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ear tufts
+  [[-s*0.08, -s*0.94], [s*0.34, -s*0.92]].forEach(([ex, ey], i) => {
+    ctx.fillStyle = '#4e342e';
+    ctx.beginPath();
+    ctx.ellipse(ex, ey, s * 0.1, s * 0.22, i === 0 ? -0.25 : 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6d4c41';
+    ctx.beginPath();
+    ctx.ellipse(ex, ey + s*0.04, s * 0.06, s * 0.14, i === 0 ? -0.25 : 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // HUGE round eyes
+  [s * 0.02, s * 0.30].forEach((ex, i) => {
+    const ey = -s * 0.58;
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f9a825'; // golden iris
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(ex + s*0.05, ey - s*0.05, s * 0.045, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Tiny triangle beak between eyes
+  ctx.fillStyle = '#ff8f00';
+  ctx.beginPath();
+  ctx.moveTo(s * 0.14, -s * 0.46);
+  ctx.lineTo(s * 0.22, -s * 0.34);
+  ctx.lineTo(s * 0.06, -s * 0.34);
+  ctx.closePath();
+  ctx.fill();
+
+  // Blush
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = '#ff8a80';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.44, -s * 0.52, s * 0.1, s * 0.07, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+}
+
+// ── 🐣 Chirpy the Baby Chick ──────────────────────────────
+function drawChick(time, previewMode = false) {
+  ctx.save();
+  if (!previewMode) {
+    ctx.translate(PARROT_X, parrot.y);
+    const targetAngle = Math.max(-0.4, Math.min(1.0, parrot.vy * 0.06));
+    parrot.angle += (targetAngle - parrot.angle) * 0.15;
+    ctx.rotate(parrot.angle);
+  }
+  const s = PARROT_SIZE;
+  const wing = gameState === 'playing' ? Math.sin(time * 12) * 0.6 : Math.sin(time * 3) * 0.15;
+
+  // Fluffy tail
+  ['#fff176', '#ffee58', '#fdd835'].forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(-s * (0.42 + i * 0.06), s * (0.0 - i * 0.08), s * (0.18 - i * 0.04), 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Tiny stub wing (flaps a lot — chicks flap like crazy!)
+  ctx.save();
+  ctx.rotate(-wing * 1.2);
+  ctx.fillStyle = '#fdd835';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.08, s * 0.08, s * 0.38, s * 0.16, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Round fluffy body (very round!)
+  const bodyGrad = ctx.createRadialGradient(-s*0.1, -s*0.1, s*0.1, 0, s*0.08, s*0.68);
+  bodyGrad.addColorStop(0, '#fff9c4');
+  bodyGrad.addColorStop(1, '#ffee58');
+  ctx.fillStyle = bodyGrad;
+  ctx.beginPath();
+  ctx.arc(0, s * 0.08, s * 0.68, 0, Math.PI * 2); // nearly perfect circle = max cuteness
+  ctx.fill();
+
+  // Fluffy chest wisps
+  ctx.fillStyle = '#fffde7';
+  [[s*0.2, -s*0.08], [s*0.28, s*0.08], [s*0.18, s*0.22]].forEach(([fx, fy]) => {
+    ctx.beginPath();
+    ctx.arc(fx, fy, s * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Big round head (almost same size as body — baby proportions!)
+  const headGrad = ctx.createRadialGradient(s*0.05, -s*0.65, s*0.05, s*0.15, -s*0.55, s*0.42);
+  headGrad.addColorStop(0, '#fff9c4');
+  headGrad.addColorStop(1, '#ffee58');
+  ctx.fillStyle = headGrad;
+  ctx.beginPath();
+  ctx.arc(s * 0.15, -s * 0.55, s * 0.46, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Single fluffy tuft on top (just hatched look!)
+  ctx.fillStyle = '#fdd835';
+  ctx.beginPath();
+  ctx.arc(s * 0.12, -s * 1.0, s * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffee58';
+  ctx.beginPath();
+  ctx.arc(s * 0.22, -s * 0.94, s * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Tiny little beak (so cute!)
+  ctx.fillStyle = '#ff8f00';
+  ctx.beginPath();
+  ctx.moveTo(s * 0.54, -s * 0.58);
+  ctx.lineTo(s * 0.72, -s * 0.52);
+  ctx.lineTo(s * 0.54, -s * 0.46);
+  ctx.closePath();
+  ctx.fill();
+
+  // VERY big eyes (takes up lots of face — max kawaii)
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(s * 0.34, -s * 0.65, s * 0.22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1b5e20';
+  ctx.beginPath();
+  ctx.arc(s * 0.36, -s * 0.65, s * 0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  ctx.arc(s * 0.38, -s * 0.65, s * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(s * 0.43, -s * 0.71, s * 0.06, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.30, -s * 0.60, s * 0.03, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big rosy cheeks
+  ctx.globalAlpha = 0.4;
+  ctx.fillStyle = '#ff8a80';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.52, -s * 0.50, s * 0.14, s * 0.09, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Tiny stick legs
+  ctx.strokeStyle = '#e65100';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  [[-s*0.1, s*0.72], [s*0.2, s*0.72]].forEach(([lx, ly]) => {
+    ctx.beginPath();
+    ctx.moveTo(lx, ly);
+    ctx.lineTo(lx, ly + s * 0.28);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lx, ly + s * 0.28);
+    ctx.lineTo(lx - s * 0.14, ly + s * 0.28);
+    ctx.moveTo(lx, ly + s * 0.28);
+    ctx.lineTo(lx + s * 0.14, ly + s * 0.28);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+// ── Characters list ───────────────────────────────────────
+// Each entry: name, emoji, fun description, and draw function
+const CHARACTERS = [
+  { name: 'Polly',  emoji: '🦜', desc: 'The colorful parrot!',  color: '#4caf50', drawFn: drawParrot },
+  { name: 'Daffy',  emoji: '🦆', desc: 'The waddly duck!',      color: '#ffee58', drawFn: drawDuck   },
+  { name: 'Hoot',   emoji: '🦉', desc: 'The wise old owl!',     color: '#795548', drawFn: drawOwl    },
+  { name: 'Chirpy', emoji: '🐣', desc: 'The tiny baby chick!',  color: '#fdd835', drawFn: drawChick  },
+];
+
+// Draw whichever character is currently selected
+function drawBird(time, previewMode = false) {
+  CHARACTERS[selectedChar].drawFn(time, previewMode);
+}
+
+// Draw a character preview card at position (cx, cy) with a given scale
+function drawCharPreview(charIdx, cx, cy, scale, time, isSelected) {
+  const ch = CHARACTERS[charIdx];
+  const cardW = isSelected ? 160 : 100;
+  const cardH = isSelected ? 200 : 130;
+
+  ctx.save();
+
+  // Card background
+  ctx.fillStyle = isSelected ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)';
+  ctx.beginPath();
+  ctx.roundRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 16);
+  ctx.fill();
+  if (isSelected) {
+    ctx.strokeStyle = ch.color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // Draw character scaled + centered in upper card area
+  ctx.save();
+  ctx.translate(cx, cy - cardH * 0.1);
+  ctx.scale(scale, scale);
+  ch.drawFn(time, true); // previewMode = true
+  ctx.restore();
+
+  // Character name below
+  ctx.textAlign = 'center';
+  if (isSelected) {
+    ctx.fillStyle = ch.color;
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(`${ch.emoji} ${ch.name}`, cx, cy + cardH * 0.38);
+    ctx.fillStyle = '#ccddff';
+    ctx.font = '13px Arial';
+    ctx.fillText(ch.desc, cx, cy + cardH * 0.52);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '20px Arial';
+    ctx.fillText(ch.emoji, cx, cy + cardH * 0.42);
+  }
+
+  ctx.restore();
+}
+
+// Draw the character select screen
+function drawSelectScreen(time) {
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 32px Arial';
+  ctx.fillText('Choose your flyer! 🎮', W / 2, 80);
+
+  const n = CHARACTERS.length;
+  const prevIdx = (selectedChar - 1 + n) % n;
+  const nextIdx = (selectedChar + 1) % n;
+
+  // Three character cards: prev (left), selected (center), next (right)
+  drawCharPreview(prevIdx,    W / 2 - 160, H / 2 - 10, 0.7, time, false);
+  drawCharPreview(selectedChar, W / 2,     H / 2 - 10, 1.1, time, true);
+  drawCharPreview(nextIdx,    W / 2 + 160, H / 2 - 10, 0.7, time, false);
+
+  // Navigation arrows
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.font = 'bold 36px Arial';
+  ctx.fillText('◀', W / 2 - 186, H / 2 + 14);
+  ctx.fillText('▶', W / 2 + 186, H / 2 + 14);
+
+  // Instructions
+  ctx.fillStyle = '#aaddff';
+  ctx.font = '16px Arial';
+  ctx.fillText('◀ ▶ arrow keys to choose', W / 2, H * 0.82);
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 18px Arial';
+  ctx.fillText('Press SPACE or tap to fly! 🚀', W / 2, H * 0.89);
+}
 function drawHUD(dt) {
   const lvl = LEVELS[currentLevel];
 
@@ -596,8 +1042,8 @@ function drawStartScreen() {
 
   ctx.fillStyle = '#ccddff';
   ctx.font = '18px Arial';
-  ctx.fillText('Press SPACE or tap to flap!', W / 2, H / 2 + 10);
-  ctx.fillText('Fly through the trees 🌳', W / 2, H / 2 + 38);
+  ctx.fillText('Press SPACE or tap to start!', W / 2, H / 2 + 10);
+  ctx.fillText('Pick your bird & fly through trees 🌳', W / 2, H / 2 + 38);
 
   if (highScore > 0) {
     ctx.fillStyle = '#ffd700';
@@ -728,11 +1174,15 @@ function updateScore() {
 // Called when the player flaps (space or click)
 function flap() {
   if (gameState === 'start') {
+    gameState = 'select'; // go pick a character first!
+    return;
+  }
+  if (gameState === 'select') {
     startGame();
     return;
   }
   if (gameState === 'gameover') {
-    restartGame();
+    gameState = 'select'; // pick a new character between rounds
     return;
   }
   if (gameState === 'playing') {
@@ -804,17 +1254,19 @@ function gameLoop(timestamp) {
     }
   }
 
-  // 5. Draw the parrot at its fixed screen position (always in front of the world)
-  if (gameState !== 'start') {
-    drawParrot(time);
+  // 5. Draw the bird at its fixed screen position (always in front of the world)
+  if (gameState === 'playing' || gameState === 'gameover') {
+    drawBird(time);
   }
 
   // 6. Draw the HUD or overlays
   if (gameState === 'playing') {
     drawHUD(dt);
   } else if (gameState === 'start') {
-    drawParrot(time); // show parrot on start screen too
+    drawBird(time); // show bird on start screen
     drawStartScreen();
+  } else if (gameState === 'select') {
+    drawSelectScreen(time);
   } else if (gameState === 'gameover') {
     drawHUD(0);
     drawGameOverScreen();
@@ -828,18 +1280,38 @@ function gameLoop(timestamp) {
 //  INPUT HANDLING
 // ═══════════════════════════════════════════════════════════
 
-// Spacebar
+// Spacebar + arrow keys
 document.addEventListener('keydown', e => {
   if (e.code === 'Space') {
-    e.preventDefault(); // stop page scrolling
+    e.preventDefault();
     flap();
+  }
+  if (e.code === 'ArrowLeft' && gameState === 'select') {
+    e.preventDefault();
+    selectedChar = (selectedChar - 1 + CHARACTERS.length) % CHARACTERS.length;
+  }
+  if (e.code === 'ArrowRight' && gameState === 'select') {
+    e.preventDefault();
+    selectedChar = (selectedChar + 1) % CHARACTERS.length;
   }
 });
 
-// Mouse click or screen tap
+// Mouse click or screen tap — left half = previous character, right half = next, center = flap/select
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
-  flap();
+  if (gameState === 'select') {
+    const rect = canvas.getBoundingClientRect();
+    const tapX = (e.clientX - rect.left) * (W / rect.width);
+    if (tapX < W * 0.3) {
+      selectedChar = (selectedChar - 1 + CHARACTERS.length) % CHARACTERS.length;
+    } else if (tapX > W * 0.7) {
+      selectedChar = (selectedChar + 1) % CHARACTERS.length;
+    } else {
+      flap(); // tap center = confirm selection
+    }
+  } else {
+    flap();
+  }
 });
 
 // ═══════════════════════════════════════════════════════════
