@@ -916,17 +916,27 @@ function drawCharPreview(charIdx, cx, cy, scale, time, isSelected) {
   ch.drawFn(time, true); // previewMode = true
   ctx.restore();
 
-  // Character name below
+  // Character name below — always white with dark shadow for readability
   ctx.textAlign = 'center';
   if (isSelected) {
-    ctx.fillStyle = ch.color;
-    ctx.font = 'bold 18px Arial';
-    ctx.fillText(`${ch.emoji} ${ch.name}`, cx, cy + cardH * 0.38);
+    // Dark pill behind name + desc so any character colour shows up
+    const pillY = cy + cardH * 0.28;
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath();
+    ctx.roundRect(cx - cardW * 0.46, pillY, cardW * 0.92, 52, 10);
+    ctx.fill();
+
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 17px Arial';
+    ctx.fillText(`${ch.emoji} ${ch.name}`, cx, pillY + 20);
     ctx.fillStyle = '#ccddff';
-    ctx.font = '13px Arial';
-    ctx.fillText(ch.desc, cx, cy + cardH * 0.52);
+    ctx.font = '12px Arial';
+    ctx.fillText(ch.desc, cx, pillY + 40);
+    ctx.shadowBlur = 0;
   } else {
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.font = '20px Arial';
     ctx.fillText(ch.emoji, cx, cy + cardH * 0.42);
   }
