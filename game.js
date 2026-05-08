@@ -72,7 +72,7 @@ const TREE_SPAWN  = 230;  // spawn a new tree every this many pixels
 // Note: treeGap and treeSpeed now come from LEVELS[currentLevel]
 
 let trees = [];
-let distanceSinceLastTree = 0;
+let lastTreeSpawnX = 0; // world-x position where we last spawned a tree pair
 
 // ── Helper: create a tree pair ────────────────────────────
 function spawnTree() {
@@ -83,7 +83,7 @@ function spawnTree() {
   const gapTop = minTop + Math.random() * (maxTop - minTop);
 
   trees.push({
-    x: W + TREE_WIDTH,
+    x: parrot.x + W + TREE_WIDTH,  // world position — ahead of the bird
     gapTop: gapTop,
     gapBottom: gapTop + treeGap,
     scored: false,
@@ -144,16 +144,18 @@ function drawStars(time) {
 }
 
 // Draw the ground (grassy strip at the bottom)
-function drawGround() {
+// cameraX is the current camera offset so grass blades tile as the bird flies forward
+function drawGround(cameraX) {
   // Dirt
   ctx.fillStyle = '#3a2010';
-  ctx.fillRect(0, H - 30, W, 30);
+  ctx.fillRect(cameraX, H - 30, W, 30);
   // Grass strip
   ctx.fillStyle = '#1a5c1a';
-  ctx.fillRect(0, H - 34, W, 8);
-  // Lighter grass highlights
+  ctx.fillRect(cameraX, H - 34, W, 8);
+  // Tiled grass blade highlights that scroll with the world
   ctx.fillStyle = '#2a8a2a';
-  for (let gx = 0; gx < W; gx += 18) {
+  const startX = Math.floor(cameraX / 18) * 18;
+  for (let gx = startX; gx < cameraX + W + 18; gx += 18) {
     ctx.beginPath();
     ctx.moveTo(gx, H - 34);
     ctx.lineTo(gx + 6, H - 42);
@@ -167,42 +169,97 @@ function drawGround() {
 //   treeH     → height of the trunk
 //   isTop     → true if the tree hangs from the top, false if it grows from the bottom
 function drawTree(x, y, treeH, isTop) {
-  // Trunk
+  const cx = x + TREE_WIDTH / 2; // trunk center x
+
+  // ── Trunk base fill ──────────────────────────────────────
   const trunkGrad = ctx.createLinearGradient(x, 0, x + TREE_WIDTH, 0);
-  trunkGrad.addColorStop(0, '#5a3010');
-  trunkGrad.addColorStop(0.4, '#8b5520');
-  trunkGrad.addColorStop(1, '#3a1a05');
+  trunkGrad.addColorStop(0,   '#3b1f08');
+  trunkGrad.addColorStop(0.3, '#7a4520');
+  trunkGrad.addColorStop(0.6, '#5c3210');
+  trunkGrad.addColorStop(1,   '#2a1005');
   ctx.fillStyle = trunkGrad;
   ctx.fillRect(x, y, TREE_WIDTH, treeH);
 
-  // Dark edge lines on trunk
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.fillRect(x, y, 6, treeH);
-  ctx.fillRect(x + TREE_WIDTH - 6, y, 6, treeH);
+  // ── Bark texture: vertical ridges ────────────────────────
+  // These thin lines give the trunk a wood-grain look
+  const barkColors = ['rgba(0,0,0,0.18)', 'rgba(255,200,100,0.07)', 'rgba(0,0,0,0.12)'];
+  const barkOffsets = [8, 18, 28, 40, 52];
+  barkOffsets.forEach((bx, i) => {
+    ctx.fillStyle = barkColors[i % barkColors.length];
+    ctx.fillRect(x + bx, y, 3 + (i % 2), treeH);
+  });
 
-  // Foliage (layered circles)
-  const foliageColors = ['#145214', '#1a7a1a', '#22aa22'];
-  const foliageX = x + TREE_WIDTH / 2;
-  const leafR = TREE_WIDTH * 0.75;
-
-  if (isTop) {
-    // Leaves sit at the bottom of the top trunk (NOT hanging into the gap)
-    foliageColors.forEach((color, i) => {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(foliageX, y + treeH - leafR * 0.6 + i * 8, leafR - i * 8, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  } else {
-    // Leaves sit at the top of the bottom trunk (NOT poking into the gap)
-    foliageColors.forEach((color, i) => {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(foliageX, y + leafR * 0.6 - i * 8, leafR - i * 8, 0, Math.PI * 2);
-      ctx.fill();
-    });
+  // ── Bark knots: small oval imperfections ─────────────────
+  // Use the tree's x position as a "seed" so knots are consistent each frame
+  const knotCount = 3;
+  for (let k = 0; k < knotCount; k++) {
+    // Pseudo-random but stable positions based on x+k
+    const kx = x + 12 + ((x * 3 + k * 23) % (TREE_WIDTH - 24));
+    const ky = y + treeH * (0.2 + ((x + k * 17) % 100) / 160);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath();
+    ctx.ellipse(kx, ky, 5, 3, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(180,100,30,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(kx, ky, 3, 2, 0.3, 0, Math.PI * 2);
+    ctx.fill();
   }
+
+  // ── Branches poking out from the trunk ───────────────────
+  const branchY = isTop
+    ? y + treeH * 0.35   // branch on the lower portion of the top trunk
+    : y + treeH * 0.65;  // branch on the upper portion of the bottom trunk
+
+  // Left branch
+  ctx.strokeStyle = '#4a2a0a';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + 4, branchY);
+  ctx.quadraticCurveTo(x - 12, branchY - 10, x - 22, branchY - 20);
+  ctx.stroke();
+  // Right branch
+  ctx.beginPath();
+  ctx.moveTo(x + TREE_WIDTH - 4, branchY);
+  ctx.quadraticCurveTo(x + TREE_WIDTH + 12, branchY - 8, x + TREE_WIDTH + 20, branchY - 18);
+  ctx.stroke();
+
+  // ── Foliage: multiple irregular leaf clusters ─────────────
+  // IMPORTANT: foliage is anchored INSIDE the trunk area, NOT into the gap
+  const leafR = TREE_WIDTH * 0.72;
+
+  // Cluster positions are relative to the gap edge of the trunk so foliage
+  // always stays well clear of the flying gap
+  const clusterBaseY = isTop
+    ? y + treeH - leafR * 0.55   // anchored inside top trunk (above gap)
+    : y + leafR * 0.55;          // anchored inside bottom trunk (below gap)
+
+  // Each cluster: [offsetX, offsetY, radiusMultiplier, color]
+  const clusters = [
+    [  0,   0,   1.00, '#145c14'],   // big center cluster (darkest)
+    [-18, -12,   0.78, '#1a7a1a'],   // upper left
+    [ 18, -10,   0.75, '#1a7a1a'],   // upper right
+    [ -8,  14,   0.65, '#22992a'],   // lower left (lighter)
+    [ 12,  12,   0.62, '#22992a'],   // lower right
+    [  0, -20,   0.55, '#2ab82a'],   // top highlight
+  ];
+
+  clusters.forEach(([ox, oy, rm, color]) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    // Slightly squash circles into ovals for a more natural canopy look
+    ctx.ellipse(cx + ox, clusterBaseY + oy, leafR * rm, leafR * rm * 0.85, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── Leaf highlight: bright edge on top clusters ───────────
+  ctx.fillStyle = 'rgba(100,220,80,0.13)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 6, clusterBaseY - 18, leafR * 0.45, leafR * 0.3, -0.3, 0, Math.PI * 2);
+  ctx.fill();
 }
+
 
 // Draw all the tree pairs
 function drawTrees() {
@@ -218,8 +275,8 @@ function drawTrees() {
 function drawParrot(time) {
   ctx.save();
 
-  // Move origin to parrot center and rotate with velocity
-  ctx.translate(parrot.x, parrot.y);
+  // Parrot always appears at PARROT_X on screen (the camera follows the bird's world position)
+  ctx.translate(PARROT_X, parrot.y);
   const targetAngle = Math.max(-0.5, Math.min(1.2, parrot.vy * 0.07));
   parrot.angle += (targetAngle - parrot.angle) * 0.15;
   ctx.rotate(parrot.angle);
@@ -449,25 +506,23 @@ function drawGameOverScreen() {
 
 // Called every frame to move the parrot
 function updateParrot() {
+  // The bird flies forward through the world!
+  parrot.x += LEVELS[currentLevel].treeSpeed;
   parrot.vy += GRAVITY;
   parrot.y += parrot.vy;
 }
 
-// Move the trees and spawn new ones
+// Spawn new trees ahead of the bird and remove ones far behind
 function updateTrees() {
-  const treeSpeed = LEVELS[currentLevel].treeSpeed;
+  const cameraX = parrot.x - PARROT_X;
 
-  // Move all trees to the left
-  trees.forEach(tree => { tree.x -= treeSpeed; });
+  // Remove trees that have gone off the left side of the screen
+  trees = trees.filter(tree => tree.x + TREE_WIDTH + 10 > cameraX);
 
-  // Remove trees that have gone off the left side
-  trees = trees.filter(tree => tree.x + TREE_WIDTH + 60 > 0);
-
-  // Spawn a new tree pair when enough distance has passed
-  distanceSinceLastTree += treeSpeed;
-  if (distanceSinceLastTree >= TREE_SPAWN) {
+  // Spawn a new tree pair when the bird has flown far enough since the last one
+  if (parrot.x - lastTreeSpawnX >= TREE_SPAWN) {
     spawnTree();
-    distanceSinceLastTree = 0;
+    lastTreeSpawnX = parrot.x;
   }
 }
 
@@ -540,7 +595,8 @@ function startGame() {
   currentLevel = 0;
   levelUpTimer = 0;
   trees = [];
-  distanceSinceLastTree = TREE_SPAWN; // spawn first tree right away
+  parrot.x = PARROT_X;               // world x — camera starts at 0
+  lastTreeSpawnX = PARROT_X - TREE_SPAWN; // triggers first tree immediately
   parrot.y = H / 2;
   parrot.vy = FLAP_POWER;
   parrot.angle = 0;
@@ -569,31 +625,39 @@ function gameLoop(timestamp) {
   const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05); // seconds since last frame
   lastTimestamp = timestamp;
 
-  // 1. Draw the background scene (always visible)
+  // How far the camera has scrolled (matches how far the bird has flown)
+  const cameraX = parrot.x - PARROT_X;
+
+  // 1. Screen-space background — stays still (no camera offset)
   drawBackground();
   drawMoon();
   drawStars(time);
-  drawGround();
+
+  // 2. World-space elements — translate so they scroll as the bird flies forward
+  ctx.save();
+  ctx.translate(-cameraX, 0);
   drawTrees();
+  drawGround(cameraX);
+  ctx.restore();
 
   if (gameState === 'playing') {
-    // 2. Update everything
+    // 3. Update everything
     updateParrot();
     updateTrees();
     updateScore();
 
-    // 3. Check if the parrot hit something
+    // 4. Check if the parrot hit something
     if (checkCollisions()) {
       triggerGameOver();
     }
   }
 
-  // 4. Draw the parrot (always visible except during start screen)
+  // 5. Draw the parrot at its fixed screen position (always in front of the world)
   if (gameState !== 'start') {
     drawParrot(time);
   }
 
-  // 5. Draw the HUD or overlays
+  // 6. Draw the HUD or overlays
   if (gameState === 'playing') {
     drawHUD(dt);
   } else if (gameState === 'start') {
@@ -604,7 +668,7 @@ function gameLoop(timestamp) {
     drawGameOverScreen();
   }
 
-  // 6. Request the next frame (~60 times per second)
+  // 7. Request the next frame (~60 times per second)
   requestAnimationFrame(gameLoop);
 }
 
