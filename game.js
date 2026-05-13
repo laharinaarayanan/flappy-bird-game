@@ -365,106 +365,185 @@ function drawParrot(time, previewMode = false) {
   }
   const s = PARROT_SIZE;
 
-  // Long blue/red tail feathers
-  [['#1565c0',0.12],['#1976d2',0.3],['#c62828',-0.0],['#e53935',-0.18]].forEach(([c,a]) => {
-    ctx.save(); ctx.rotate(a);
-    ctx.fillStyle = c;
+  [['#0d47a1', 0.2, -s * 0.52], ['#1565c0', 0.08, -s * 0.48], ['#c62828', -0.05, -s * 0.42], ['#e53935', -0.18, -s * 0.38]].forEach(([color, angle, x]) => {
+    ctx.save();
+    ctx.rotate(angle);
+    const tailGrad = ctx.createLinearGradient(x, -s * 0.02, x, s * 0.86);
+    tailGrad.addColorStop(0, color);
+    tailGrad.addColorStop(1, color === '#c62828' || color === '#e53935' ? '#8e1c1c' : '#0b3c86');
+    ctx.fillStyle = tailGrad;
     ctx.beginPath();
-    ctx.ellipse(-s*0.5, s*0.22, s*0.07, s*0.52, 0, 0, Math.PI*2);
+    ctx.moveTo(x, -s * 0.02);
+    ctx.bezierCurveTo(x - s * 0.05, s * 0.12, x - s * 0.1, s * 0.66, x - s * 0.04, s * 0.86);
+    ctx.bezierCurveTo(x + s * 0.04, s * 0.72, x + s * 0.06, s * 0.2, x + s * 0.02, -s * 0.02);
+    ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.moveTo(-s*0.5, s*0.0); ctx.lineTo(-s*0.5, s*0.68); ctx.stroke();
+    ctx.strokeStyle = 'rgba(70,50,40,0.45)';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(x, -s * 0.01);
+    ctx.lineTo(x - s * 0.01, s * 0.82);
+    ctx.stroke();
     ctx.restore();
   });
 
-  // Wing — pivots from shoulder (top of body)
   parrot.wingAngle = (gameState === 'playing' || previewMode)
     ? Math.sin(time * 9) * 0.9
     : Math.sin(time * 3) * 0.25;
   ctx.save();
-  ctx.translate(s*0.05, -s*0.22); // shoulder pivot
+  ctx.translate(s * 0.02, -s * 0.14);
   ctx.rotate(-parrot.wingAngle);
-  ctx.fillStyle = '#1565c0'; // blue outer wing
+  const wingGrad = ctx.createLinearGradient(0, 0, -s * 1.18, s * 0.34);
+  wingGrad.addColorStop(0, '#2f80c8');
+  wingGrad.addColorStop(0.55, '#1565c0');
+  wingGrad.addColorStop(1, '#0d47a1');
+  ctx.fillStyle = wingGrad;
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.bezierCurveTo(-s*0.3, s*0.04, -s*0.88, s*0.06, -s*1.1, s*0.18);
-  ctx.bezierCurveTo(-s*0.88, s*0.42, -s*0.3, s*0.4, 0, s*0.28);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#7cb342'; // yellow-green band
+  ctx.bezierCurveTo(-s * 0.18, -s * 0.06, -s * 0.82, 0, -s * 1.14, s * 0.18);
+  ctx.bezierCurveTo(-s * 0.98, s * 0.48, -s * 0.34, s * 0.48, 0, s * 0.26);
+  ctx.closePath();
+  ctx.fill();
+  const covertGrad = ctx.createLinearGradient(0, 0, -s * 0.9, s * 0.18);
+  covertGrad.addColorStop(0, '#9ccc65');
+  covertGrad.addColorStop(0.45, '#7cb342');
+  covertGrad.addColorStop(1, '#558b2f');
+  ctx.fillStyle = covertGrad;
   ctx.beginPath();
-  ctx.moveTo(-s*0.04, s*0.06);
-  ctx.bezierCurveTo(-s*0.3, s*0.1, -s*0.72, s*0.14, -s*0.88, s*0.22);
-  ctx.bezierCurveTo(-s*0.72, s*0.34, -s*0.3, s*0.32, -s*0.04, s*0.22);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#0d47a1'; // primary tips
-  for (let i = 0; i < 5; i++) {
+  ctx.moveTo(-s * 0.02, s * 0.02);
+  ctx.bezierCurveTo(-s * 0.2, 0, -s * 0.66, s * 0.04, -s * 0.86, s * 0.14);
+  ctx.bezierCurveTo(-s * 0.72, s * 0.28, -s * 0.26, s * 0.3, -s * 0.02, s * 0.18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#f2c94c';
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.04, s * 0.08);
+  ctx.bezierCurveTo(-s * 0.22, s * 0.07, -s * 0.48, s * 0.09, -s * 0.6, s * 0.14);
+  ctx.bezierCurveTo(-s * 0.48, s * 0.22, -s * 0.18, s * 0.22, -s * 0.04, s * 0.17);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#0d47a1';
+  for (let i = 0; i < 6; i++) {
+    const px = -s * (0.72 + i * 0.08);
+    const py = s * (0.24 + i * 0.025);
     ctx.beginPath();
-    ctx.ellipse(-s*0.76-i*s*0.07, s*0.3+i*s*0.03, s*0.034, s*0.13, 0.1, 0, Math.PI*2);
+    ctx.moveTo(px, py - s * 0.08);
+    ctx.quadraticCurveTo(px - s * 0.05, py + s * 0.02, px - s * 0.01, py + s * 0.16);
+    ctx.quadraticCurveTo(px + s * 0.03, py + s * 0.03, px, py - s * 0.08);
     ctx.fill();
   }
   ctx.restore();
 
-  // Red body — slightly elongated, not perfectly round
-  ctx.fillStyle = '#c62828';
+  const bodyGrad = ctx.createRadialGradient(s * 0.12, -s * 0.1, s * 0.06, s * 0.02, s * 0.12, s * 0.82);
+  bodyGrad.addColorStop(0, '#ef5350');
+  bodyGrad.addColorStop(0.45, '#d43732');
+  bodyGrad.addColorStop(1, '#7f1d1d');
+  ctx.fillStyle = bodyGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.02, s*0.1, s*0.52, s*0.60, 0, 0, Math.PI*2);
+  ctx.moveTo(s * 0.34, -s * 0.12);
+  ctx.bezierCurveTo(s * 0.52, s * 0.04, s * 0.5, s * 0.52, s * 0.12, s * 0.76);
+  ctx.bezierCurveTo(-s * 0.28, s * 0.84, -s * 0.56, s * 0.46, -s * 0.48, s * 0.06);
+  ctx.bezierCurveTo(-s * 0.42, -s * 0.28, -s * 0.06, -s * 0.42, s * 0.34, -s * 0.12);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = 'rgba(0,0,0,0.13)'; // underside shading
+  ctx.fillStyle = 'rgba(80, 0, 0, 0.16)';
   ctx.beginPath();
-  ctx.ellipse(-s*0.1, s*0.22, s*0.26, s*0.38, 0.2, 0, Math.PI*2);
+  ctx.moveTo(-s * 0.08, s * 0.02);
+  ctx.bezierCurveTo(s * 0.1, s * 0.14, s * 0.16, s * 0.46, -s * 0.06, s * 0.64);
+  ctx.bezierCurveTo(-s * 0.24, s * 0.62, -s * 0.3, s * 0.2, -s * 0.08, s * 0.02);
+  ctx.closePath();
   ctx.fill();
 
-  // Red head
-  ctx.fillStyle = '#c62828';
+  const headGrad = ctx.createRadialGradient(s * 0.18, -s * 0.72, s * 0.04, s * 0.16, -s * 0.56, s * 0.42);
+  headGrad.addColorStop(0, '#ef5350');
+  headGrad.addColorStop(0.55, '#c62828');
+  headGrad.addColorStop(1, '#7f1d1d');
+  ctx.fillStyle = headGrad;
   ctx.beginPath();
-  ctx.arc(s*0.2, -s*0.52, s*0.38, 0, Math.PI*2);
+  ctx.moveTo(s * 0.03, -s * 0.76);
+  ctx.bezierCurveTo(s * 0.14, -s * 0.98, s * 0.46, -s * 0.94, s * 0.56, -s * 0.68);
+  ctx.bezierCurveTo(s * 0.62, -s * 0.42, s * 0.38, -s * 0.22, s * 0.1, -s * 0.28);
+  ctx.bezierCurveTo(-s * 0.08, -s * 0.36, -s * 0.12, -s * 0.6, s * 0.03, -s * 0.76);
+  ctx.closePath();
   ctx.fill();
 
-  // Bare white facial patch (Scarlet Macaw's defining feature)
-  ctx.fillStyle = '#fafafa';
+  ctx.fillStyle = '#fbfbf6';
   ctx.beginPath();
-  ctx.ellipse(s*0.3, -s*0.52, s*0.2, s*0.16, -0.1, 0, Math.PI*2);
+  ctx.moveTo(s * 0.16, -s * 0.74);
+  ctx.bezierCurveTo(s * 0.36, -s * 0.82, s * 0.5, -s * 0.76, s * 0.56, -s * 0.58);
+  ctx.bezierCurveTo(s * 0.52, -s * 0.38, s * 0.34, -s * 0.3, s * 0.16, -s * 0.38);
+  ctx.bezierCurveTo(s * 0.06, -s * 0.48, s * 0.06, -s * 0.66, s * 0.16, -s * 0.74);
+  ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = 'rgba(160,160,160,0.45)'; ctx.lineWidth = 0.7;
+  ctx.strokeStyle = 'rgba(120, 120, 120, 0.42)';
+  ctx.lineWidth = 0.8;
   for (let i = 0; i < 4; i++) {
+    const fx = s * (0.18 + i * 0.08);
     ctx.beginPath();
-    ctx.moveTo(s*0.17+i*s*0.07, -s*0.64);
-    ctx.lineTo(s*0.17+i*s*0.07, -s*0.42);
+    ctx.moveTo(fx, -s * 0.71);
+    ctx.lineTo(fx + s * 0.015, -s * 0.41);
     ctx.stroke();
   }
 
-  // Strongly hooked grey beak
-  ctx.fillStyle = '#757575';
+  const beakGrad = ctx.createLinearGradient(s * 0.36, -s * 0.66, s * 0.96, -s * 0.38);
+  beakGrad.addColorStop(0, '#bdbdbd');
+  beakGrad.addColorStop(0.65, '#8e8e8e');
+  beakGrad.addColorStop(1, '#424242');
+  ctx.fillStyle = beakGrad;
   ctx.beginPath();
-  ctx.moveTo(s*0.42, -s*0.62);
-  ctx.bezierCurveTo(s*0.9, -s*0.66, s*0.92, -s*0.5, s*0.62, -s*0.44);
-  ctx.bezierCurveTo(s*0.66, -s*0.54, s*0.5, -s*0.56, s*0.42, -s*0.62);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#424242'; // dark curved tip
-  ctx.beginPath(); ctx.arc(s*0.82, -s*0.54, s*0.07, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#9e9e9e'; // lower mandible
+  ctx.moveTo(s * 0.4, -s * 0.63);
+  ctx.bezierCurveTo(s * 0.68, -s * 0.76, s * 0.96, -s * 0.58, s * 0.82, -s * 0.38);
+  ctx.bezierCurveTo(s * 0.7, -s * 0.3, s * 0.52, -s * 0.32, s * 0.46, -s * 0.44);
+  ctx.bezierCurveTo(s * 0.6, -s * 0.48, s * 0.66, -s * 0.56, s * 0.63, -s * 0.64);
+  ctx.bezierCurveTo(s * 0.56, -s * 0.66, s * 0.47, -s * 0.66, s * 0.4, -s * 0.63);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#a0a0a0';
   ctx.beginPath();
-  ctx.moveTo(s*0.44, -s*0.46);
-  ctx.bezierCurveTo(s*0.68, -s*0.42, s*0.7, -s*0.36, s*0.55, -s*0.36);
-  ctx.bezierCurveTo(s*0.48, -s*0.38, s*0.44, -s*0.42, s*0.44, -s*0.46);
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(s * 0.42, -s * 0.46);
+  ctx.bezierCurveTo(s * 0.58, -s * 0.38, s * 0.68, -s * 0.34, s * 0.62, -s * 0.28);
+  ctx.bezierCurveTo(s * 0.52, -s * 0.28, s * 0.42, -s * 0.34, s * 0.42, -s * 0.46);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#303030';
+  ctx.beginPath();
+  ctx.arc(s * 0.83, -s * 0.45, s * 0.055, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Eye — natural size, yellow iris (macaw trait)
-  ctx.fillStyle = '#fff9c4';
-  ctx.beginPath(); ctx.arc(s*0.28, -s*0.56, s*0.11, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#f9a825';
-  ctx.beginPath(); ctx.arc(s*0.28, -s*0.56, s*0.08, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#111';
-  ctx.beginPath(); ctx.arc(s*0.29, -s*0.56, s*0.05, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.beginPath(); ctx.arc(s*0.32, -s*0.59, s*0.025, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#f6d54a';
+  ctx.beginPath();
+  ctx.arc(s * 0.28, -s * 0.58, s * 0.11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fffdf6';
+  ctx.beginPath();
+  ctx.arc(s * 0.28, -s * 0.58, s * 0.084, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#e0a800';
+  ctx.beginPath();
+  ctx.arc(s * 0.285, -s * 0.58, s * 0.055, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#101010';
+  ctx.beginPath();
+  ctx.arc(s * 0.29, -s * 0.58, s * 0.032, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.arc(s * 0.315, -s * 0.605, s * 0.016, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Zygodactyl feet (2 toes forward, 2 back — parrot feature)
-  ctx.strokeStyle = '#616161'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-  [[-s*0.12, s*0.65], [s*0.14, s*0.65]].forEach(([fx, fy]) => {
-    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx, fy+s*0.18); ctx.stroke();
-    [[-s*0.18,s*0.04],[-s*0.06,s*0.1],[s*0.06,s*0.1],[s*0.03,-s*0.12]].forEach(([tx,ty]) => {
-      ctx.beginPath(); ctx.moveTo(fx, fy+s*0.18); ctx.lineTo(fx+tx, fy+s*0.28+ty); ctx.stroke();
+  ctx.strokeStyle = '#616161';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  [[-s * 0.09, s * 0.63], [s * 0.11, s * 0.64]].forEach(([fx, fy]) => {
+    ctx.beginPath();
+    ctx.moveTo(fx, fy);
+    ctx.lineTo(fx, fy + s * 0.19);
+    ctx.stroke();
+    [[-s * 0.16, s * 0.05], [-s * 0.04, s * 0.1], [s * 0.06, s * 0.1], [s * 0.04, -s * 0.11]].forEach(([tx, ty]) => {
+      ctx.beginPath();
+      ctx.moveTo(fx, fy + s * 0.19);
+      ctx.lineTo(fx + tx, fy + s * 0.28 + ty);
+      ctx.stroke();
     });
   });
 
@@ -483,108 +562,174 @@ function drawDuck(time, previewMode = false) {
   const s = PARROT_SIZE;
   const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 9) * 0.9 : Math.sin(time * 3) * 0.25;
 
-  // White upturned tail feathers
-  ctx.fillStyle = '#f5f5f5';
-  ctx.beginPath();
-  ctx.ellipse(-s*0.52, -s*0.04, s*0.09, s*0.26, -0.5, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#e0e0e0';
-  ctx.beginPath();
-  ctx.ellipse(-s*0.58, s*0.06, s*0.07, s*0.2, -0.28, 0, Math.PI*2);
-  ctx.fill();
+  ['#f5f5f5', '#ffffff'].forEach((color, i) => {
+    ctx.save();
+    ctx.rotate(-0.24 + i * 0.12);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(-s * (0.5 + i * 0.02), s * 0.02);
+    ctx.quadraticCurveTo(-s * 0.72, -s * 0.1, -s * 0.66, -s * 0.28);
+    ctx.quadraticCurveTo(-s * 0.54, -s * 0.22, -s * (0.44 + i * 0.02), s * 0.08);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
 
-  // Wing — pivots from shoulder
   ctx.save();
-  ctx.translate(s*0.0, -s*0.18);
+  ctx.translate(s * 0.02, -s * 0.14);
   ctx.rotate(-wing);
-  ctx.fillStyle = '#8d6e63'; // brown-grey outer wing
+  const wingGrad = ctx.createLinearGradient(0, 0, -s * 1.1, s * 0.34);
+  wingGrad.addColorStop(0, '#a1887f');
+  wingGrad.addColorStop(0.55, '#8d6e63');
+  wingGrad.addColorStop(1, '#5d4037');
+  ctx.fillStyle = wingGrad;
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.bezierCurveTo(-s*0.28, s*0.04, -s*0.86, s*0.06, -s*1.08, s*0.18);
-  ctx.bezierCurveTo(-s*0.86, s*0.42, -s*0.28, s*0.4, 0, s*0.28);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#1565c0'; // blue speculum
-  ctx.beginPath();
-  ctx.moveTo(-s*0.08, s*0.1);
-  ctx.bezierCurveTo(-s*0.34, s*0.12, -s*0.72, s*0.14, -s*0.86, s*0.22);
-  ctx.bezierCurveTo(-s*0.72, s*0.32, -s*0.34, s*0.3, -s*0.08, s*0.22);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; // white border on speculum
-  ctx.beginPath();
-  ctx.moveTo(-s*0.08, s*0.1);
-  ctx.bezierCurveTo(-s*0.34, s*0.12, -s*0.72, s*0.14, -s*0.86, s*0.22);
-  ctx.stroke();
-  ctx.fillStyle = '#5d4037'; // primary tips
-  for (let i = 0; i < 5; i++) {
+  ctx.bezierCurveTo(-s * 0.22, -s * 0.04, -s * 0.78, s * 0.02, -s * 1.08, s * 0.18);
+  ctx.bezierCurveTo(-s * 0.94, s * 0.46, -s * 0.3, s * 0.46, 0, s * 0.24);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(70, 45, 30, 0.34)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
     ctx.beginPath();
-    ctx.ellipse(-s*0.74-i*s*0.07, s*0.28+i*s*0.03, s*0.034, s*0.12, 0.1, 0, Math.PI*2);
+    ctx.moveTo(-s * (0.12 + i * 0.14), s * (0.05 + i * 0.005));
+    ctx.lineTo(-s * (0.22 + i * 0.14), s * (0.26 + i * 0.02));
+    ctx.stroke();
+  }
+  ctx.strokeStyle = '#fffdf8';
+  ctx.lineWidth = s * 0.05;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.08, s * 0.13);
+  ctx.bezierCurveTo(-s * 0.28, s * 0.11, -s * 0.62, s * 0.12, -s * 0.82, s * 0.18);
+  ctx.stroke();
+  const specGrad = ctx.createLinearGradient(-s * 0.08, s * 0.13, -s * 0.82, s * 0.22);
+  specGrad.addColorStop(0, '#42a5f5');
+  specGrad.addColorStop(1, '#1565c0');
+  ctx.fillStyle = specGrad;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.08, s * 0.15);
+  ctx.bezierCurveTo(-s * 0.28, s * 0.16, -s * 0.62, s * 0.18, -s * 0.82, s * 0.24);
+  ctx.bezierCurveTo(-s * 0.66, s * 0.33, -s * 0.28, s * 0.33, -s * 0.08, s * 0.24);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#4e342e';
+  for (let i = 0; i < 6; i++) {
+    const px = -s * (0.68 + i * 0.08);
+    const py = s * (0.24 + i * 0.026);
+    ctx.beginPath();
+    ctx.moveTo(px, py - s * 0.07);
+    ctx.quadraticCurveTo(px - s * 0.05, py + s * 0.03, px, py + s * 0.14);
+    ctx.quadraticCurveTo(px + s * 0.028, py + s * 0.02, px, py - s * 0.07);
     ctx.fill();
   }
   ctx.restore();
 
-  // Grey-brown body
-  ctx.fillStyle = '#8d6e63';
+  const bodyGrad = ctx.createRadialGradient(s * 0.12, -s * 0.02, s * 0.08, s * 0.04, s * 0.18, s * 0.88);
+  bodyGrad.addColorStop(0, '#b39b90');
+  bodyGrad.addColorStop(0.5, '#8d6e63');
+  bodyGrad.addColorStop(1, '#5d4037');
+  ctx.fillStyle = bodyGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.0, s*0.12, s*0.54, s*0.58, 0, 0, Math.PI*2);
+  ctx.moveTo(s * 0.4, -s * 0.08);
+  ctx.bezierCurveTo(s * 0.56, s * 0.08, s * 0.5, s * 0.46, s * 0.1, s * 0.66);
+  ctx.bezierCurveTo(-s * 0.36, s * 0.72, -s * 0.64, s * 0.36, -s * 0.54, s * 0.04);
+  ctx.bezierCurveTo(-s * 0.46, -s * 0.24, -s * 0.08, -s * 0.34, s * 0.4, -s * 0.08);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#bcaaa4'; // lighter belly
+  ctx.fillStyle = '#6d4c41';
   ctx.beginPath();
-  ctx.ellipse(s*0.08, s*0.2, s*0.3, s*0.4, 0.1, 0, Math.PI*2);
+  ctx.moveTo(s * 0.16, -s * 0.14);
+  ctx.bezierCurveTo(s * 0.4, -s * 0.06, s * 0.48, s * 0.16, s * 0.22, s * 0.3);
+  ctx.bezierCurveTo(s * 0.02, s * 0.26, -s * 0.02, 0, s * 0.16, -s * 0.14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.04, s * 0.04);
+  ctx.bezierCurveTo(s * 0.12, s * 0.1, s * 0.16, s * 0.42, -s * 0.04, s * 0.52);
+  ctx.bezierCurveTo(-s * 0.24, s * 0.46, -s * 0.24, s * 0.14, -s * 0.04, s * 0.04);
+  ctx.closePath();
   ctx.fill();
 
-  // Chestnut breast patch
-  ctx.fillStyle = '#5d4037';
+  const headGrad = ctx.createRadialGradient(s * 0.08, -s * 0.7, s * 0.04, s * 0.18, -s * 0.52, s * 0.36);
+  headGrad.addColorStop(0, '#4caf50');
+  headGrad.addColorStop(0.55, '#1b5e20');
+  headGrad.addColorStop(1, '#0a3311');
+  ctx.fillStyle = headGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.18, s*0.02, s*0.26, s*0.3, -0.2, 0, Math.PI*2);
+  ctx.moveTo(s * 0.02, -s * 0.68);
+  ctx.bezierCurveTo(s * 0.14, -s * 0.88, s * 0.42, -s * 0.86, s * 0.54, -s * 0.62);
+  ctx.bezierCurveTo(s * 0.56, -s * 0.38, s * 0.34, -s * 0.24, s * 0.08, -s * 0.3);
+  ctx.bezierCurveTo(-s * 0.1, -s * 0.38, -s * 0.12, -s * 0.56, s * 0.02, -s * 0.68);
+  ctx.closePath();
   ctx.fill();
 
-  // White neck ring
-  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = s*0.11;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = s * 0.08;
   ctx.beginPath();
-  ctx.arc(s*0.18, -s*0.3, s*0.22, Math.PI*0.55, Math.PI*1.3);
+  ctx.arc(s * 0.13, -s * 0.31, s * 0.19, Math.PI * 0.62, Math.PI * 1.34);
   ctx.stroke();
 
-  // Iridescent green head
-  const hg = ctx.createRadialGradient(s*0.1, -s*0.56, s*0.04, s*0.18, -s*0.5, s*0.34);
-  hg.addColorStop(0, '#66bb6a');
-  hg.addColorStop(0.5, '#1b5e20');
-  hg.addColorStop(1, '#0a3311');
-  ctx.fillStyle = hg;
+  const billGrad = ctx.createLinearGradient(s * 0.34, -s * 0.56, s * 0.8, -s * 0.42);
+  billGrad.addColorStop(0, '#ffb74d');
+  billGrad.addColorStop(0.6, '#fb8c00');
+  billGrad.addColorStop(1, '#ef6c00');
+  ctx.fillStyle = billGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.18, -s*0.5, s*0.34, s*0.3, 0, 0, Math.PI*2);
+  ctx.moveTo(s * 0.34, -s * 0.54);
+  ctx.bezierCurveTo(s * 0.56, -s * 0.61, s * 0.8, -s * 0.58, s * 0.82, -s * 0.47);
+  ctx.bezierCurveTo(s * 0.78, -s * 0.37, s * 0.52, -s * 0.34, s * 0.36, -s * 0.4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#f57c00';
+  ctx.beginPath();
+  ctx.moveTo(s * 0.36, -s * 0.44);
+  ctx.bezierCurveTo(s * 0.54, -s * 0.36, s * 0.74, -s * 0.36, s * 0.72, -s * 0.3);
+  ctx.bezierCurveTo(s * 0.54, -s * 0.28, s * 0.38, -s * 0.32, s * 0.36, -s * 0.44);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#3e2723';
+  ctx.beginPath();
+  ctx.ellipse(s * 0.73, -s * 0.46, s * 0.07, s * 0.045, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Orange-yellow flat bill with dark saddle
-  ctx.fillStyle = '#fb8c00';
+  ctx.fillStyle = '#5d4037';
   ctx.beginPath();
-  ctx.ellipse(s*0.55, -s*0.52, s*0.23, s*0.09, 0.05, 0, Math.PI*2);
+  ctx.arc(s * 0.25, -s * 0.51, s * 0.05, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#1a1a1a'; // dark saddle tip
+  ctx.fillStyle = '#fffdf8';
   ctx.beginPath();
-  ctx.ellipse(s*0.68, -s*0.52, s*0.09, s*0.06, 0, 0, Math.PI*2);
+  ctx.arc(s * 0.25, -s * 0.51, s * 0.032, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#f57c00'; // lower bill
+  ctx.fillStyle = '#4e342e';
   ctx.beginPath();
-  ctx.ellipse(s*0.55, -s*0.44, s*0.2, s*0.07, 0.05, 0, Math.PI*2);
+  ctx.arc(s * 0.252, -s * 0.51, s * 0.022, 0, Math.PI * 2);
   ctx.fill();
-
-  // Eye — small dark, with white ring (mallard trait)
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(s*0.31, -s*0.52, s*0.075, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath(); ctx.arc(s*0.31, -s*0.52, s*0.055, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.beginPath(); ctx.arc(s*0.34, -s*0.55, s*0.02, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.254, -s * 0.51, s * 0.014, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath();
+  ctx.arc(s * 0.266, -s * 0.522, s * 0.009, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Webbed orange feet
   ctx.fillStyle = '#fb8c00';
-  [[-s*0.12, s*0.64], [s*0.12, s*0.66]].forEach(([fx, fy]) => {
+  [[-s * 0.08, s * 0.63], [s * 0.12, s * 0.64]].forEach(([fx, fy]) => {
+    ctx.fillRect(fx - s * 0.01, fy, s * 0.02, s * 0.16);
     ctx.beginPath();
-    ctx.moveTo(fx, fy); ctx.lineTo(fx+s*0.02, fy+s*0.2);
-    ctx.lineTo(fx+s*0.18, fy+s*0.2); ctx.lineTo(fx+s*0.08, fy+s*0.32);
-    ctx.lineTo(fx-s*0.04, fy+s*0.2); ctx.lineTo(fx-s*0.15, fy+s*0.22);
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#e65100'; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.moveTo(fx, fy + s * 0.16);
+    ctx.lineTo(fx + s * 0.16, fy + s * 0.19);
+    ctx.lineTo(fx + s * 0.07, fy + s * 0.29);
+    ctx.lineTo(fx, fy + s * 0.23);
+    ctx.lineTo(fx - s * 0.13, fy + s * 0.28);
+    ctx.lineTo(fx - s * 0.08, fy + s * 0.19);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#e65100';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
   });
 
   ctx.restore();
@@ -602,105 +747,169 @@ function drawOwl(time, previewMode = false) {
   const s = PARROT_SIZE;
   const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 8) * 0.9 : Math.sin(time * 3) * 0.25;
 
-  // Short barred tail
-  ['#5d4037','#795548','#4e342e'].forEach((c, i) => {
-    ctx.fillStyle = c;
+  ['#5d4037', '#8d6e63', '#4e342e'].forEach((color, i) => {
+    ctx.save();
+    ctx.rotate(-0.1 + i * 0.12);
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.ellipse(-s*0.44+i*s*0.06, s*0.22, s*0.065, s*0.3, i*0.14-0.1, 0, Math.PI*2);
+    ctx.moveTo(-s * (0.46 - i * 0.06), s * 0.18);
+    ctx.quadraticCurveTo(-s * (0.66 - i * 0.04), s * 0.34, -s * (0.56 - i * 0.03), s * 0.54);
+    ctx.quadraticCurveTo(-s * (0.4 - i * 0.04), s * 0.42, -s * (0.38 - i * 0.03), s * 0.18);
+    ctx.closePath();
     ctx.fill();
+    ctx.restore();
   });
 
-  // Wide wing — owls have very broad wings; pivots from shoulder
   ctx.save();
-  ctx.translate(s*0.0, -s*0.18);
+  ctx.translate(s * 0.04, -s * 0.2);
   ctx.rotate(-wing);
-  ctx.fillStyle = '#6d4c41';
+  const wingGrad = ctx.createLinearGradient(0, 0, -s * 1.34, s * 0.42);
+  wingGrad.addColorStop(0, '#8d6e63');
+  wingGrad.addColorStop(0.45, '#6d4c41');
+  wingGrad.addColorStop(1, '#4e342e');
+  ctx.fillStyle = wingGrad;
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.bezierCurveTo(-s*0.22, s*0.04, -s*0.9, s*0.05, -s*1.22, s*0.18);
-  ctx.bezierCurveTo(-s*0.9, s*0.44, -s*0.22, s*0.42, 0, s*0.3);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5; // barring
-  for (let i = 0; i < 7; i++) {
-    ctx.beginPath();
-    ctx.moveTo(-s*0.04-i*s*0.16, s*0.04+i*s*0.005);
-    ctx.lineTo(-s*0.08-i*s*0.16, s*0.28+i*s*0.015);
-    ctx.stroke();
-  }
-  ctx.fillStyle = '#3e2723'; // primary tips
+  ctx.bezierCurveTo(-s * 0.28, -s * 0.08, -s * 1.02, -s * 0.02, -s * 1.3, s * 0.16);
+  ctx.bezierCurveTo(-s * 1.18, s * 0.52, -s * 0.34, s * 0.56, 0, s * 0.3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(60, 40, 25, 0.55)';
+  ctx.lineWidth = 1.6;
   for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    ctx.ellipse(-s*0.9-i*s*0.06, s*0.3+i*s*0.025, s*0.028, s*0.13, 0.1, 0, Math.PI*2);
+    ctx.moveTo(-s * (0.12 + i * 0.18), s * (0.04 + i * 0.01));
+    ctx.lineTo(-s * (0.2 + i * 0.18), s * (0.3 + i * 0.018));
+    ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(212, 190, 155, 0.55)';
+  ctx.lineWidth = 1.1;
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-s * (0.1 + i * 0.2), s * 0.1);
+    ctx.lineTo(-s * (0.22 + i * 0.2), s * 0.16);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#3e2723';
+  for (let i = 0; i < 6; i++) {
+    const px = -s * (0.86 + i * 0.075);
+    const py = s * (0.28 + i * 0.025);
+    ctx.beginPath();
+    ctx.moveTo(px, py - s * 0.09);
+    ctx.quadraticCurveTo(px - s * 0.05, py + s * 0.03, px - s * 0.01, py + s * 0.16);
+    ctx.quadraticCurveTo(px + s * 0.028, py + s * 0.04, px, py - s * 0.09);
     ctx.fill();
   }
   ctx.restore();
 
-  // Mottled brown body
-  ctx.fillStyle = '#795548';
+  const bodyGrad = ctx.createRadialGradient(s * 0.08, -s * 0.06, s * 0.08, s * 0.04, s * 0.14, s * 0.9);
+  bodyGrad.addColorStop(0, '#a1887f');
+  bodyGrad.addColorStop(0.45, '#795548');
+  bodyGrad.addColorStop(1, '#4e342e');
+  ctx.fillStyle = bodyGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.0, s*0.1, s*0.52, s*0.63, 0, 0, Math.PI*2);
+  ctx.moveTo(s * 0.32, -s * 0.22);
+  ctx.bezierCurveTo(s * 0.54, -s * 0.02, s * 0.48, s * 0.54, s * 0.08, s * 0.82);
+  ctx.bezierCurveTo(-s * 0.34, s * 0.88, -s * 0.62, s * 0.46, -s * 0.54, s * 0.02);
+  ctx.bezierCurveTo(-s * 0.46, -s * 0.32, -s * 0.08, -s * 0.46, s * 0.32, -s * 0.22);
+  ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = 'rgba(62,39,35,0.4)'; ctx.lineWidth = 2; // body barring
-  for (let i = 0; i < 5; i++) {
+  ctx.strokeStyle = 'rgba(78, 52, 46, 0.45)';
+  ctx.lineWidth = 1.8;
+  for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    ctx.ellipse(s*0.04, -s*0.2+i*s*0.16, s*0.42, s*0.04, 0, Math.PI*0.15, Math.PI*0.85);
+    ctx.moveTo(-s * 0.28, -s * 0.08 + i * s * 0.15);
+    ctx.quadraticCurveTo(s * 0.02, -s * 0.14 + i * s * 0.15, s * 0.3, -s * 0.08 + i * s * 0.15);
     ctx.stroke();
   }
 
-  // White/cream barred chest
-  ctx.fillStyle = '#efebe9';
+  const chestGrad = ctx.createLinearGradient(0, -s * 0.16, 0, s * 0.68);
+  chestGrad.addColorStop(0, '#f7f3ed');
+  chestGrad.addColorStop(1, '#d7ccc8');
+  ctx.fillStyle = chestGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.1, s*0.14, s*0.28, s*0.42, 0.1, 0, Math.PI*2);
+  ctx.moveTo(s * 0.05, -s * 0.1);
+  ctx.bezierCurveTo(s * 0.28, -s * 0.02, s * 0.28, s * 0.52, s * 0.04, s * 0.68);
+  ctx.bezierCurveTo(-s * 0.18, s * 0.54, -s * 0.18, s * 0.06, s * 0.05, -s * 0.1);
+  ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = 'rgba(109,76,65,0.5)'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(109, 76, 65, 0.55)';
+  ctx.lineWidth = 1.3;
   for (let i = 0; i < 5; i++) {
     ctx.beginPath();
-    ctx.ellipse(s*0.1, -s*0.02+i*s*0.15, s*0.22, s*0.03, 0.1, Math.PI*0.12, Math.PI*0.88);
+    ctx.moveTo(-s * 0.1, s * (0.02 + i * 0.12));
+    ctx.quadraticCurveTo(s * 0.04, -s * 0.02 + i * 0.12, s * 0.18, s * (0.02 + i * 0.12));
     ctx.stroke();
   }
 
-  // Grey facial disc
-  ctx.fillStyle = '#bcaaa4';
+  const faceGrad = ctx.createRadialGradient(s * 0.14, -s * 0.56, s * 0.05, s * 0.14, -s * 0.5, s * 0.42);
+  faceGrad.addColorStop(0, '#d7ccc8');
+  faceGrad.addColorStop(0.6, '#bcaaa4');
+  faceGrad.addColorStop(1, '#8d6e63');
+  ctx.fillStyle = faceGrad;
   ctx.beginPath();
-  ctx.ellipse(s*0.16, -s*0.5, s*0.35, s*0.3, 0, 0, Math.PI*2);
+  ctx.moveTo(-s * 0.08, -s * 0.68);
+  ctx.bezierCurveTo(s * 0.02, -s * 0.86, s * 0.34, -s * 0.84, s * 0.44, -s * 0.66);
+  ctx.bezierCurveTo(s * 0.56, -s * 0.42, s * 0.42, -s * 0.18, s * 0.14, -s * 0.16);
+  ctx.bezierCurveTo(-s * 0.14, -s * 0.2, -s * 0.26, -s * 0.46, -s * 0.08, -s * 0.68);
+  ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.ellipse(s*0.16, -s*0.5, s*0.35, s*0.3, 0, 0, Math.PI*2);
+  ctx.strokeStyle = '#6d4c41';
+  ctx.lineWidth = 2.2;
   ctx.stroke();
 
-  // Ear tufts — Great Horned Owl's trademark
-  [[-s*0.04, -s*0.8], [s*0.3, -s*0.78]].forEach(([ex, ey], i) => {
+  [[-s * 0.04, -s * 0.92, -0.24], [s * 0.28, -s * 0.9, 0.24]].forEach(([tx, ty, rot]) => {
+    ctx.save();
+    ctx.translate(tx, ty);
+    ctx.rotate(rot);
     ctx.fillStyle = '#3e2723';
     ctx.beginPath();
-    ctx.ellipse(ex, ey, s*0.08, s*0.22, i===0?-0.28:0.28, 0, Math.PI*2);
+    ctx.moveTo(0, s * 0.16);
+    ctx.quadraticCurveTo(s * 0.02, -s * 0.02, 0, -s * 0.26);
+    ctx.quadraticCurveTo(-s * 0.08, -s * 0.04, -s * 0.06, s * 0.18);
+    ctx.closePath();
     ctx.fill();
     ctx.fillStyle = '#8d6e63';
     ctx.beginPath();
-    ctx.ellipse(ex+(i===0?s*0.02:-s*0.02), ey+s*0.04, s*0.04, s*0.13, i===0?-0.28:0.28, 0, Math.PI*2);
+    ctx.moveTo(-s * 0.02, s * 0.1);
+    ctx.quadraticCurveTo(0, -s * 0.02, -s * 0.01, -s * 0.16);
+    ctx.quadraticCurveTo(-s * 0.05, -s * 0.02, -s * 0.04, s * 0.12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+
+  [s * 0.02, s * 0.26].forEach(ex => {
+    const ey = -s * 0.5;
+    ctx.fillStyle = '#6d4c41';
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fffdf7';
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f9a825';
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.086, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(ex, ey, s * 0.044, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(ex + s * 0.028, ey - s * 0.03, s * 0.015, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  // Large amber eyes (owls genuinely have large eyes — realistic!)
-  [s*0.04, s*0.28].forEach(ex => {
-    const ey = -s*0.52;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(ex, ey, s*0.13, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#f57f17'; // amber iris
-    ctx.beginPath(); ctx.arc(ex, ey, s*0.10, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#111';
-    ctx.beginPath(); ctx.arc(ex, ey, s*0.065, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.beginPath(); ctx.arc(ex+s*0.04, ey-s*0.04, s*0.028, 0, Math.PI*2); ctx.fill();
-  });
-
-  // Hooked beak between eyes, pointing downward
-  ctx.fillStyle = '#424242';
+  ctx.fillStyle = '#2f2f2f';
   ctx.beginPath();
-  ctx.moveTo(s*0.14, -s*0.42);
-  ctx.bezierCurveTo(s*0.22, -s*0.32, s*0.22, -s*0.26, s*0.14, -s*0.26);
-  ctx.bezierCurveTo(s*0.06, -s*0.26, s*0.05, -s*0.32, s*0.14, -s*0.42);
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(s * 0.14, -s * 0.38);
+  ctx.bezierCurveTo(s * 0.2, -s * 0.3, s * 0.18, -s * 0.24, s * 0.14, -s * 0.22);
+  ctx.bezierCurveTo(s * 0.1, -s * 0.24, s * 0.08, -s * 0.3, s * 0.14, -s * 0.38);
+  ctx.closePath();
+  ctx.fill();
 
   ctx.restore();
 }
@@ -717,74 +926,132 @@ function drawChick(time, previewMode = false) {
   const s = PARROT_SIZE;
   const wing = (gameState === 'playing' || previewMode) ? Math.sin(time * 12) * 0.9 : Math.sin(time * 3) * 0.25;
 
-  // Small fluffy tail wisps
-  ['#fff9c4','#fff176','#ffee58'].forEach((c, i) => {
-    ctx.fillStyle = c;
+  ['#fff9c4', '#fff176', '#ffee58'].forEach((color, i) => {
+    ctx.save();
+    ctx.rotate(-0.3 + i * 0.2);
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.ellipse(-s*(0.48+i*0.04), s*(0.0+i*0.06), s*0.08, s*0.18, -0.4+i*0.18, 0, Math.PI*2);
+    ctx.moveTo(-s * (0.4 + i * 0.04), s * 0.08);
+    ctx.quadraticCurveTo(-s * (0.56 + i * 0.04), s * 0.1, -s * (0.5 + i * 0.04), s * (0.28 + i * 0.02));
+    ctx.quadraticCurveTo(-s * (0.32 + i * 0.03), s * 0.22, -s * (0.3 + i * 0.02), s * 0.04);
+    ctx.closePath();
     ctx.fill();
+    ctx.restore();
   });
 
-  // Stubby wing — chick wings are tiny and undeveloped; pivots from shoulder
   ctx.save();
-  ctx.translate(s*0.0, -s*0.1);
+  ctx.translate(s * 0.02, -s * 0.08);
   ctx.rotate(-wing);
-  ctx.fillStyle = '#fdd835';
+  const wingGrad = ctx.createLinearGradient(0, 0, -s * 0.74, s * 0.2);
+  wingGrad.addColorStop(0, '#fff59d');
+  wingGrad.addColorStop(0.65, '#fdd835');
+  wingGrad.addColorStop(1, '#f9a825');
+  ctx.fillStyle = wingGrad;
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.bezierCurveTo(-s*0.18, s*0.02, -s*0.56, s*0.04, -s*0.72, s*0.14);
-  ctx.bezierCurveTo(-s*0.56, s*0.3, -s*0.18, s*0.28, 0, s*0.2);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#fff176'; // downy tips
-  for (let i = 0; i < 4; i++) {
+  ctx.bezierCurveTo(-s * 0.12, -s * 0.02, -s * 0.46, s * 0.02, -s * 0.66, s * 0.14);
+  ctx.bezierCurveTo(-s * 0.52, s * 0.28, -s * 0.16, s * 0.27, 0, s * 0.16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#fff9c4';
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.02, s * 0.05);
+  ctx.bezierCurveTo(-s * 0.16, s * 0.04, -s * 0.34, s * 0.06, -s * 0.46, s * 0.12);
+  ctx.bezierCurveTo(-s * 0.3, s * 0.18, -s * 0.12, s * 0.18, -s * 0.02, s * 0.13);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#fbc02d';
+  for (let i = 0; i < 5; i++) {
+    const px = -s * (0.28 + i * 0.08);
+    const py = s * (0.12 + i * 0.014);
     ctx.beginPath();
-    ctx.arc(-s*0.14-i*s*0.14, s*0.1+i*s*0.02, s*0.065, 0, Math.PI*2);
+    ctx.moveTo(px, py - s * 0.04);
+    ctx.quadraticCurveTo(px - s * 0.03, py + s * 0.015, px, py + s * 0.07);
+    ctx.quadraticCurveTo(px + s * 0.018, py + s * 0.01, px, py - s * 0.04);
     ctx.fill();
   }
   ctx.restore();
 
-  // Fluffy round body (overlapping circles for downy texture)
-  [[0, s*0.1, s*0.58,'#ffee58'],[s*0.16, s*0.0, s*0.42,'#fff176'],
-   [-s*0.14, s*0.18, s*0.38,'#ffee58'],[s*0.0, s*0.26, s*0.36,'#fff9c4']].forEach(([bx,by,br,c]) => {
-    ctx.fillStyle = c;
-    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
+  [[0, s * 0.12, s * 0.53, '#ffee58'], [s * 0.18, s * 0.06, s * 0.38, '#fff176'], [-s * 0.14, s * 0.18, s * 0.34, '#ffe082'], [s * 0.04, s * 0.28, s * 0.31, '#fff9c4'], [-s * 0.18, s * 0.02, s * 0.28, '#fff59d']].forEach(([bx, by, br, color]) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fill();
   });
 
-  // Round head — natural proportions for a baby bird
-  const hg = ctx.createRadialGradient(s*0.1, -s*0.56, s*0.04, s*0.16, -s*0.5, s*0.34);
-  hg.addColorStop(0, '#fff9c4'); hg.addColorStop(1, '#ffee58');
-  ctx.fillStyle = hg;
-  ctx.beginPath(); ctx.arc(s*0.16, -s*0.5, s*0.36, 0, Math.PI*2); ctx.fill();
-
-  // Single spiky down tuft on top (just hatched!)
-  ctx.fillStyle = '#fdd835';
-  ctx.beginPath(); ctx.arc(s*0.1, -s*0.84, s*0.09, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#ffee58';
-  ctx.beginPath(); ctx.arc(s*0.2, -s*0.8, s*0.065, 0, Math.PI*2); ctx.fill();
-
-  // Tiny straight beak
-  ctx.fillStyle = '#fb8c00';
+  const headGrad = ctx.createRadialGradient(s * 0.08, -s * 0.64, s * 0.04, s * 0.14, -s * 0.48, s * 0.38);
+  headGrad.addColorStop(0, '#fffde7');
+  headGrad.addColorStop(0.6, '#fff176');
+  headGrad.addColorStop(1, '#fdd835');
+  ctx.fillStyle = headGrad;
   ctx.beginPath();
-  ctx.moveTo(s*0.46, -s*0.52);
-  ctx.lineTo(s*0.64, -s*0.48);
-  ctx.lineTo(s*0.46, -s*0.44);
-  ctx.closePath(); ctx.fill();
-  // Egg tooth (white dot on upper bill — real baby bird feature!)
-  ctx.fillStyle = '#fffde7';
-  ctx.beginPath(); ctx.arc(s*0.58, -s*0.505, s*0.022, 0, Math.PI*2); ctx.fill();
+  ctx.moveTo(-s * 0.02, -s * 0.68);
+  ctx.bezierCurveTo(s * 0.08, -s * 0.84, s * 0.34, -s * 0.82, s * 0.42, -s * 0.62);
+  ctx.bezierCurveTo(s * 0.48, -s * 0.42, s * 0.3, -s * 0.24, s * 0.08, -s * 0.26);
+  ctx.bezierCurveTo(-s * 0.12, -s * 0.32, -s * 0.16, -s * 0.52, -s * 0.02, -s * 0.68);
+  ctx.closePath();
+  ctx.fill();
 
-  // Small natural eyes — babies have dark eyes, not huge anime eyes
+  ctx.fillStyle = '#fdd835';
+  ctx.beginPath();
+  ctx.moveTo(s * 0.1, -s * 0.86);
+  ctx.quadraticCurveTo(s * 0.12, -s * 1.02, s * 0.2, -s * 0.86);
+  ctx.quadraticCurveTo(s * 0.28, -s * 0.98, s * 0.26, -s * 0.82);
+  ctx.quadraticCurveTo(s * 0.16, -s * 0.74, s * 0.1, -s * 0.86);
+  ctx.fill();
+
+  const billGrad = ctx.createLinearGradient(s * 0.34, -s * 0.52, s * 0.64, -s * 0.44);
+  billGrad.addColorStop(0, '#ffb74d');
+  billGrad.addColorStop(1, '#fb8c00');
+  ctx.fillStyle = billGrad;
+  ctx.beginPath();
+  ctx.moveTo(s * 0.34, -s * 0.5);
+  ctx.lineTo(s * 0.6, -s * 0.46);
+  ctx.lineTo(s * 0.34, -s * 0.41);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#f57c00';
+  ctx.beginPath();
+  ctx.moveTo(s * 0.34, -s * 0.46);
+  ctx.lineTo(s * 0.54, -s * 0.44);
+  ctx.lineTo(s * 0.34, -s * 0.39);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#bdb76b';
+  ctx.beginPath();
+  ctx.arc(s * 0.23, -s * 0.52, s * 0.042, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fffdf5';
+  ctx.beginPath();
+  ctx.arc(s * 0.23, -s * 0.52, s * 0.026, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#3e2723';
+  ctx.beginPath();
+  ctx.arc(s * 0.232, -s * 0.52, s * 0.017, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath(); ctx.arc(s*0.29, -s*0.53, s*0.075, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.75)';
-  ctx.beginPath(); ctx.arc(s*0.32, -s*0.56, s*0.022, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.233, -s * 0.52, s * 0.011, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.beginPath();
+  ctx.arc(s * 0.242, -s * 0.53, s * 0.007, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Tiny legs
-  ctx.strokeStyle = '#e65100'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-  [[-s*0.08, s*0.62], [s*0.16, s*0.64]].forEach(([lx, ly]) => {
-    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly+s*0.22); ctx.stroke();
-    [[-s*0.12,s*0.05],[s*0.0,s*0.08],[s*0.12,s*0.04]].forEach(([tx,ty]) => {
-      ctx.beginPath(); ctx.moveTo(lx, ly+s*0.22); ctx.lineTo(lx+tx, ly+s*0.28+ty); ctx.stroke();
+  ctx.strokeStyle = '#f57c00';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  [[-s * 0.06, s * 0.6], [s * 0.12, s * 0.62]].forEach(([lx, ly]) => {
+    ctx.beginPath();
+    ctx.moveTo(lx, ly);
+    ctx.lineTo(lx, ly + s * 0.22);
+    ctx.stroke();
+    [[-s * 0.09, s * 0.04], [0, s * 0.07], [s * 0.09, s * 0.04]].forEach(([tx, ty]) => {
+      ctx.beginPath();
+      ctx.moveTo(lx, ly + s * 0.22);
+      ctx.lineTo(lx + tx, ly + s * 0.28 + ty);
+      ctx.stroke();
     });
   });
 
