@@ -1055,6 +1055,65 @@ function drawChick(time, previewMode = false) {
     });
   });
 
+  // === EGG SHELL — Pip is hatching! ===
+  const eX = s * 0.02, eY = s * 0.28;
+  const eRx = s * 0.58, eRy = s * 0.65;
+
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.beginPath();
+  ctx.ellipse(eX + s * 0.04, eY + eRy + s * 0.04, eRx * 0.6, s * 0.09, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Egg body gradient
+  const eGrad = ctx.createLinearGradient(eX - eRx, eY, eX + eRx * 0.5, eY + eRy);
+  eGrad.addColorStop(0,   '#fffef8');
+  eGrad.addColorStop(0.5, '#fefce8');
+  eGrad.addColorStop(1,   '#e4d9b8');
+  ctx.fillStyle = eGrad;
+  ctx.strokeStyle = '#c4b896';
+  ctx.lineWidth = 2;
+
+  // Bottom half of egg with jagged crack top edge
+  ctx.beginPath();
+  ctx.moveTo(eX - eRx * 0.96, eY);
+  ctx.lineTo(eX - eRx * 0.62, eY - s * 0.07);
+  ctx.lineTo(eX - eRx * 0.32, eY + s * 0.09);
+  ctx.lineTo(eX - eRx * 0.08, eY - s * 0.06);
+  ctx.lineTo(eX + eRx * 0.12, eY + s * 0.08);
+  ctx.lineTo(eX + eRx * 0.38, eY - s * 0.05);
+  ctx.lineTo(eX + eRx * 0.64, eY + s * 0.07);
+  ctx.lineTo(eX + eRx * 0.96, eY - s * 0.02);
+  // Smooth egg bottom curve
+  ctx.bezierCurveTo(eX + eRx, eY + eRy * 0.42, eX + eRx * 0.58, eY + eRy, eX, eY + eRy);
+  ctx.bezierCurveTo(eX - eRx * 0.58, eY + eRy, eX - eRx, eY + eRy * 0.42, eX - eRx * 0.96, eY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Highlight on left side for roundness
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(eX - eRx * 0.28, eY + eRy * 0.28, eRx * 0.16, eRy * 0.24, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner shading curve (makes it look round)
+  ctx.strokeStyle = 'rgba(180,165,130,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(eX + eRx * 0.22, eY + eRy * 0.55, eRx * 0.28, eRy * 0.35, 0.3, Math.PI * 0.6, Math.PI * 1.5);
+  ctx.stroke();
+
+  // A couple of small crack lines radiating from the jagged edge
+  ctx.strokeStyle = 'rgba(160,145,110,0.6)';
+  ctx.lineWidth = 1;
+  [[eX - eRx*0.08, eY, eX - eRx*0.02, eY - s*0.14],
+   [eX + eRx*0.12, eY + s*0.05, eX + eRx*0.18, eY - s*0.1],
+   [eX - eRx*0.32, eY + s*0.06, eX - eRx*0.28, eY - s*0.08]
+  ].forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  });
+
   ctx.restore();
 }
 // ── Characters list ───────────────────────────────────────
